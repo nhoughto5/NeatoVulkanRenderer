@@ -7,9 +7,47 @@
 #include <cstdlib>
 #include <vector>
 #include <algorithm>
+#include <cstring>
+#include <set>
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
+
+struct QueueFamilyIndices {
+	int graphicsFamily = -1;
+    int presentFamily = -1;
+	bool isComplete() {
+		return graphicsFamily >= 0 && presentFamily >= 0;
+	}
+};
+
+const std::vector<const char*> validationLayers = {
+	"VK_LAYER_LUNARG_standard_validation"
+};
+
+#ifdef NDEBUG
+const bool enableValidationLayers = false;
+#else
+const bool enableValidationLayers = true;
+#endif // NDEBUG
+
+// Finds the address of the 'vkCreateDebugReportCallbackEXT' extension function as it is not loaded automatically
+VkResult CreateDebugReportCallbackEXT(VkInstance instance, const VkDebugReportCallbackCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pCallback) {
+	auto func = (PFN_vkCreateDebugReportCallbackEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT");
+	if (func != nullptr) {
+		return func(instance, pCreateInfo, pAllocator, pCallback);
+	} else {
+		return VK_ERROR_EXTENSION_NOT_PRESENT;
+	}
+}
+
+void DestroyDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackEXT callback, const VkAllocationCallbacks* pAllocator) {
+	auto func = (PFN_vkDestroyDebugReportCallbackEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugReportCallbackEXT");
+	if (func != nullptr) {
+		func(instance, callback, pAllocator);
+	}
+}
+
 class HelloTriangleApplication {
 public:
 	void run() {
@@ -23,6 +61,32 @@ private:
 
 	GLFWwindow * window;
 	VkInstance instance;
+	VkDebugReportCallbackEXT callback;
+	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+    VkDevice device;
+    VkQueue graphicsQueue;
+    VkSurfaceKHR surface;
+    VkQueue presentQueue;
+
+	bool checkValidationLayerSupport() {
+		uint32_t layerCount;
+		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+		std::vector<VkLayerProperties> availableLayers(layerCount);
+		vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+		for (const char* layerName : validationLayers) {
+			bool layerFound = false;
+			for (const auto& layerProperties : availableLayers) {
+				if (strcmp(layerName, layerProperties.layerName) == 0) {
+					layerFound = true;
+					break;
+				}
+			}
+			if (!layerFound) {
+				return false;
+			}
+		}
+		return true;
+	}
 
 	void initWindow() {
 		glfwInit();
@@ -32,6 +96,11 @@ private:
 	}
 
 	void createInstance() {
+
+		if (enableValidationLayers && !checkValidationLayerSupport()) {
+			throw std::runtime_error("Validation layers requested but not available");
+		}
+
 		VkApplicationInfo appInfo = {};
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 		appInfo.pApplicationName = "Hello Triangle";
@@ -44,38 +113,159 @@ private:
 		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 		createInfo.pApplicationInfo = &appInfo;
 
+		auto extensions = getRequiredExtensions();
+		createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+		createInfo.ppEnabledExtensionNames = extensions.data();
+
+		if (enableValidationLayers) {
+			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+			createInfo.ppEnabledLayerNames = validationLayers.data();
+		} else {
+			createInfo.enabledLayerCount = 0;
+		}
+
+		if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create instance!");
+		}
+	}
+
+	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device) {
+		QueueFamilyIndices indices;
+		uint32_t queueFamilyCount = 0;
+		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+		int i = 0;
+		for (const auto& queueFamily : queueFamilies) {
+            VkBool32 presentSupport = false;
+            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
+
+			if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+				indices.graphicsFamily = i;
+			}
+
+            if (queueFamily.queueCount > 0 && presentSupport) {
+                indices.presentFamily = i;
+            }
+
+			if (indices.isComplete()) break;
+
+			++i;
+		}
+
+		return indices;
+	}
+
+	std::vector<const char*> getRequiredExtensions() {
 		uint32_t glfwExtensionCount = 0;
 		const char** glfwExtensions;
 		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-		createInfo.enabledExtensionCount = glfwExtensionCount;
-		createInfo.ppEnabledExtensionNames = glfwExtensions;
-		createInfo.enabledLayerCount = 0;
 
-		if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
-			throw std::runtime_error("Failed to Create Instance");
+		std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+
+		if (enableValidationLayers) {
+			extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 		}
 
-		uint32_t extensionCount = 0;
-		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr); //Get count
-		std::vector<VkExtensionProperties> extensions(extensionCount);
-		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
-
-		std::cout << "Available Extensions: " << std::endl;
-		for (const auto& extension : extensions) {
-			std::cout << "\t" << extension.extensionName << std::endl;
-		}
-
-		for (uint32_t i = 0; i < glfwExtensionCount; ++i) {
-			//std::cout << glfwExtensions[i] << "\n";
-			std::string temp(glfwExtensions[i]);
-			if (std::find_if(extensions.begin(), extensions.end(), [&temp](const VkExtensionProperties& obj) {return obj.extensionName == temp;}) == extensions.end()) {
-				throw std::runtime_error("Missing Extension: " + temp);
-			}
-		}
+		return extensions;
 	}
 
 	void initVulkan() {
 		createInstance();
+		setupDebugCallback();
+        createSurface();
+		pickPhysicalDevice();
+        createLogicalDevice();
+	}
+
+    void createSurface() {
+        if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to create window surface");
+        }
+    }
+
+    void createLogicalDevice() {
+
+        // Specifying the queues to be created
+        QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+        VkDeviceQueueCreateInfo queueCreateInfo = {};
+        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex = indices.graphicsFamily;
+        queueCreateInfo.queueCount = 1;
+
+        float queuePriority = 1.0f;
+        queueCreateInfo.pQueuePriorities = &queuePriority;
+
+        // Specifying used device features
+        VkPhysicalDeviceFeatures deviceFeatures = {};
+
+
+        // Creating the logical device
+        VkDeviceCreateInfo createInfo = {};
+        createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        createInfo.pQueueCreateInfos = &queueCreateInfo;
+        createInfo.queueCreateInfoCount = 1;
+        createInfo.pEnabledFeatures = &deviceFeatures;
+
+        createInfo.enabledExtensionCount = 0;
+        if (enableValidationLayers) {
+            createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+            createInfo.ppEnabledLayerNames = validationLayers.data();
+        } else {
+            createInfo.enabledLayerCount = 0;
+        }
+
+        if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to create logical device");
+        }
+
+        // Retrieving queue handles
+        vkGetDeviceQueue(device, indices.graphicsFamily, 0, &graphicsQueue);
+
+        std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+        std::set<int> uniqueQueueFamilies = {indices.graphicsFamily, indices.presentFamily};
+
+        for (int queueFamily : uniqueQueueFamilies) {
+            VkDeviceQueueCreateInfo queueCreateInfo = {};
+            queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+            queueCreateInfo.queueFamilyIndex = queueFamily;
+            queueCreateInfo.queueCount = 1;
+            queueCreateInfo.pQueuePriorities = &queuePriority;
+            queueCreateInfos.push_back(queueCreateInfo);
+        }
+
+        createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+        createInfo.pQueueCreateInfos = queueCreateInfos.data();
+
+        vkGetDeviceQueue(device, indices.presentFamily, 0, &presentQueue);
+    }
+
+	// Pick an available GPU
+	void pickPhysicalDevice() {
+		uint32_t deviceCount = 0;
+		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+		if (deviceCount == 0) {
+			throw std::runtime_error("Failed to find GPUs with Vulkan Support");
+		}
+		std::vector<VkPhysicalDevice> devices(deviceCount);
+		vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+		for (const auto& device : devices) {
+			if (isDeviceSuitable(device)) {
+				physicalDevice = device;
+				break;
+			}
+		}
+
+		if (physicalDevice == VK_NULL_HANDLE) {
+			throw std::runtime_error("Failed to find suitable GPU");
+		}
+	}
+
+	bool isDeviceSuitable(VkPhysicalDevice device) {
+		QueueFamilyIndices indices = findQueueFamilies(device);
+		return indices.isComplete();
 	}
 
 	void mainLoop() {
@@ -85,9 +275,40 @@ private:
 	}
 
 	void cleanup() {
+        vkDestroyDevice(device, nullptr);
+		if (enableValidationLayers) {
+			DestroyDebugReportCallbackEXT(instance, callback, nullptr);
+		}
+        vkDestroySurfaceKHR(instance, surface, nullptr);
 		vkDestroyInstance(instance, nullptr);
 		glfwDestroyWindow(window);
 		glfwTerminate();
+	}
+
+	void setupDebugCallback() {
+		if (!enableValidationLayers) return;
+		VkDebugReportCallbackCreateInfoEXT createInfo = {};
+		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+		createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
+		createInfo.pfnCallback = debugCallback;
+
+		if (CreateDebugReportCallbackEXT(instance, &createInfo, nullptr, &callback) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to set up debug callback");
+		}
+	}
+
+	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+		VkDebugReportFlagsEXT flags,
+		VkDebugReportObjectTypeEXT objType,
+		uint64_t obj,
+		size_t location,
+		int32_t code,
+		const char* layerPrefix,
+		const char* msg,
+		void* userData) {
+		std::cerr << "validation layer: " << msg << std::endl;
+
+		return VK_FALSE;
 	}
 };
 
