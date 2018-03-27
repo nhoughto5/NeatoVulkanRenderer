@@ -27,6 +27,8 @@ int main() {
 		glfwPollEvents();
 	}
 
+
+
 	glfwDestroyWindow(window);
 
 	glfwTerminate();
