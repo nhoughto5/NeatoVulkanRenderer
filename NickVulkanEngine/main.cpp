@@ -86,7 +86,7 @@ private:
     VkRenderPass renderPass;
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
-    std::vector<VkFramebuffer> swapChainFramBuffers;
+    std::vector<VkFramebuffer> swapChainFrameBuffers;
     VkCommandPool commandPool;
     std::vector<VkCommandBuffer> commandBuffers;
     VkSemaphore imageAvailableSemaphore, renderFinishedSemaphore;
@@ -116,6 +116,13 @@ private:
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
         window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
+        glfwSetWindowUserPointer(window, this);
+        glfwSetWindowSizeCallback(window, HelloTriangleApplication::onWindowResize);
+    }
+
+    static void onWindowResize(GLFWwindow* window, int width, int height) {
+        HelloTriangleApplication* app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
+        app->recreateSwapChain();
     }
 
     void createInstance() {
@@ -220,7 +227,7 @@ private:
     }
 
     void createCommandBuffers() {
-        commandBuffers.resize(swapChainFramBuffers.size());
+        commandBuffers.resize(swapChainFrameBuffers.size());
 
         VkCommandBufferAllocateInfo allocInfo = {};
         allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -242,7 +249,7 @@ private:
             VkRenderPassBeginInfo renderPassInfo = {};
             renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
             renderPassInfo.renderPass = renderPass;
-            renderPassInfo.framebuffer = swapChainFramBuffers[i];
+            renderPassInfo.framebuffer = swapChainFrameBuffers[i];
 
             renderPassInfo.renderArea.offset = {0, 0};
             renderPassInfo.renderArea.extent = swapChainExtent;
@@ -276,7 +283,7 @@ private:
     }
 
     void createFrameBuffers() {
-        swapChainFramBuffers.resize(swapChainImageViews.size());
+        swapChainFrameBuffers.resize(swapChainImageViews.size());
 
         for (size_t i = 0; i < swapChainImageViews.size(); ++i) {
             VkImageView attachments[] = {
@@ -292,7 +299,7 @@ private:
             frameBufferInfo.height = swapChainExtent.height;
             frameBufferInfo.layers = 1;
 
-            if (vkCreateFramebuffer(device, &frameBufferInfo, nullptr, &swapChainFramBuffers[i]) != VK_SUCCESS) {
+            if (vkCreateFramebuffer(device, &frameBufferInfo, nullptr, &swapChainFrameBuffers[i]) != VK_SUCCESS) {
                 throw std::runtime_error("Failed to create framebuffer");
             }
         }
@@ -670,6 +677,21 @@ private:
         return bestMode;
     }
 
+    void recreateSwapChain() {
+        int width, height;
+        glfwGetWindowSize(window, &width, &height);
+        if (width == 0 || height == 0) return;
+
+        vkDeviceWaitIdle(device);
+        cleanupSwapChain();
+        createSwapChain();
+        createImageViews();
+        createRenderPass();
+        createGraphicsPipeline();
+        createFrameBuffers();
+        createCommandBuffers();
+    }
+
     void createSwapChain() {
         SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
         VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
@@ -728,7 +750,9 @@ private:
         if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
             return capabilities.currentExtent;
         } else {
-            VkExtent2D actualExtent = {WIDTH, HEIGHT};
+            int width, height;
+            glfwGetWindowSize(window, &width, &height);
+            VkExtent2D actualExtent = {width, height};
 
             actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
             actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
@@ -775,7 +799,12 @@ private:
 
     void drawFrame() {
         uint32_t imageIndex;
-        vkAcquireNextImageKHR(device, swapChain, std::numeric_limits<uint64_t>::max(), imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+        VkResult result = vkAcquireNextImageKHR(device, swapChain, std::numeric_limits<uint64_t>::max(), imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+        if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+            recreateSwapChain();
+        } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+            std::runtime_error("Failed to acquire swap chain image");
+        }
 
         VkSubmitInfo submitInfo = {};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -808,8 +837,13 @@ private:
         presentInfo.pImageIndices = &imageIndex;
         presentInfo.pResults = nullptr;
 
-        vkQueuePresentKHR(presentQueue, &presentInfo);
+        result = vkQueuePresentKHR(presentQueue, &presentInfo);
 
+        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+            recreateSwapChain();
+        } else if (result != VK_SUCCESS) {
+            throw std::runtime_error("failed to present swap chain image!");
+        }
         //Sync with GPU to prevent memory leak in validation layers
         vkQueueWaitIdle(presentQueue);
     }
@@ -822,28 +856,39 @@ private:
         vkDeviceWaitIdle(device);
     }
 
-    void cleanup() {
-        vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
-        vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
-        vkDestroyCommandPool(device, commandPool, nullptr);
-        for (auto frameBuffer : swapChainFramBuffers) {
-            vkDestroyFramebuffer(device, frameBuffer, nullptr);
+    void cleanupSwapChain() {
+        for (size_t i = 0; i < swapChainFrameBuffers.size(); i++) {
+            vkDestroyFramebuffer(device, swapChainFrameBuffers[i], nullptr);
         }
+
+        vkFreeCommandBuffers(device, commandPool, static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());
+
         vkDestroyPipeline(device, graphicsPipeline, nullptr);
         vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
         vkDestroyRenderPass(device, renderPass, nullptr);
-        for (auto imageView : swapChainImageViews) {
-            vkDestroyImageView(device, imageView, nullptr);
+
+        for (size_t i = 0; i < swapChainImageViews.size(); i++) {
+            vkDestroyImageView(device, swapChainImageViews[i], nullptr);
         }
 
         vkDestroySwapchainKHR(device, swapChain, nullptr);
+    }
+
+    void cleanup() {
+        cleanupSwapChain();
+
+        vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
+        vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
+
+        vkDestroyCommandPool(device, commandPool, nullptr);
+
         vkDestroyDevice(device, nullptr);
-        if (enableValidationLayers) {
-            DestroyDebugReportCallbackEXT(instance, callback, nullptr);
-        }
+        DestroyDebugReportCallbackEXT(instance, callback, nullptr);
         vkDestroySurfaceKHR(instance, surface, nullptr);
         vkDestroyInstance(instance, nullptr);
+
         glfwDestroyWindow(window);
+
         glfwTerminate();
     }
 
