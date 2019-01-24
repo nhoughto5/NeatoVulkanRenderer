@@ -23,18 +23,19 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shader.vert">
-      <Filter>Shaders</Filter>
+    <None Include="shaders\compile.bat">
+      <Filter>Source Files</Filter>
     </None>
-    <None Include="shader.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="compile.bat">
-      <Filter>Shaders</Filter>
-    </None>
+    <None Include="shaders\frag.spv" />
+    <None Include="shaders\shader.frag" />
+    <None Include="shaders\shader.vert" />
+    <None Include="shaders\vert.spv" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Helpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ExternalResources\stb\stb_image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
