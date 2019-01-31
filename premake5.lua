@@ -14,7 +14,7 @@ IncludeDir["GLFW"] = "ExternalResources/GLFW/include"
 IncludeDir["GLM"] = "ExternalResources/glm"
 IncludeDir["STB"] = "ExternalResources/stb"
 IncludeDir["VULKAN"] = "ExternalResources/Vulkan/Include"
-
+IncludeDir["TOL"] = "ExternalResources/tinyobjloader"
 
 project "NickVulkanEngine"
 	location "NickVulkanEngine"
@@ -34,7 +34,8 @@ project "NickVulkanEngine"
 		"%{IncludeDir.GLFW}",
 		"%{IncludeDir.GLM}",
 		"%{IncludeDir.STB}",
-		"%{IncludeDir.VULKAN}"
+		"%{IncludeDir.VULKAN}",
+		"%{IncludeDir.TOL}"
 	}
 	libdirs  
 	{ 
