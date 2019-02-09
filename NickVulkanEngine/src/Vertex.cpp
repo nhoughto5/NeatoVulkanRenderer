@@ -1,5 +1,7 @@
 #include "nvepch.h"
 
+
+
 VkVertexInputBindingDescription Vertex::getBindingDescription() {
 	VkVertexInputBindingDescription bindingDescription = {};
 	bindingDescription.binding = 0;
@@ -29,5 +31,5 @@ std::array<VkVertexInputAttributeDescription, 3> Vertex::getAttributeDescription
 
 bool Vertex::operator==(const Vertex & other) const
 {
-	return false;
+	return pos == other.pos && color == other.color && texCoord == other.texCoord;
 }
