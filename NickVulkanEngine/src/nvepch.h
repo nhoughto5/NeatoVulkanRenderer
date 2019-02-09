@@ -26,4 +26,5 @@
 #include <fstream>
 #include "Vertex.h"
 #include "Helpers.h"
-#include "Renderer.h"
+#include "Vulkan/Renderer.h"
+#include "Vulkan/Instance.h"

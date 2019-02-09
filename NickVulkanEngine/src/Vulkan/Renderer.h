@@ -30,9 +30,8 @@ public:
 	void run();
 
 private:
-
-	GLFWwindow * window;
 	VkInstance instance;
+	GLFWwindow * window;
 	VkDebugReportCallbackEXT callback;
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 	VkDevice device;
@@ -79,7 +78,6 @@ private:
 	void setupDebugCallback();
 	void initWindow();
 	static void onWindowResize(GLFWwindow* window, int width, int height);
-	void createInstance();
 	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 	std::vector<const char*> getRequiredExtensions();
 	void initVulkan();
