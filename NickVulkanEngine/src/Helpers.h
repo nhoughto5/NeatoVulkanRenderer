@@ -1,6 +1,5 @@
 #pragma once
-#include <fstream>
-#include <vector>
+#include "nvepch.h"
 
 static std::vector<char> readFile(const std::string& filename) {
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
@@ -17,3 +16,4 @@ static std::vector<char> readFile(const std::string& filename) {
 
     return buffer;
 }
+

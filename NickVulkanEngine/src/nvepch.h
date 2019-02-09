@@ -1,15 +1,13 @@
 #pragma once
-
 #define GLFW_INCLUDE_VULKAN
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#define STB_IMAGE_IMPLEMENTATION
 #define TINYOBJLOADER_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
 #define GLM_ENABLE_EXPERIMENTAL
 
 #include <glfw3.h>
-
 #include <iostream>
 #include <stdexcept>
 #include <unordered_map>
@@ -20,8 +18,12 @@
 #include <cstring>
 #include <set>
 #include <array>
-#include "Helpers.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/hash.hpp>
+
 #include <chrono>
+#include <fstream>
+#include "Vertex.h"
+#include "Helpers.h"
+#include "Renderer.h"
