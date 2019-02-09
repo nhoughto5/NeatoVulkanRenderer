@@ -23,6 +23,8 @@ project "NickVulkanEngine"
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 	staticruntime "off"
+	pchheader "nvepch.h"
+	pchsource "NickVulkanEngine/src/nvepch.cpp"
 	files
 	{
 		"%{prj.name}/src/**.h",
