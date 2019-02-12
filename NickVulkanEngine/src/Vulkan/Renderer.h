@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Debug/DebugLayer.h"
 const int WIDTH = 800;
 const int HEIGHT = 600;
 const std::string MODEL_PATH = "models/chalet.obj";
@@ -30,9 +30,9 @@ public:
 	void run();
 
 private:
+	DebugLayer debugger;
 	VkInstance instance;
 	GLFWwindow * window;
-	VkDebugReportCallbackEXT callback;
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 	VkDevice device;
 	VkQueue graphicsQueue;
@@ -74,12 +74,10 @@ private:
 	VkDeviceMemory colorImageMemory;
 	VkImageView colorImageView;
 
-	bool checkValidationLayerSupport();
-	void setupDebugCallback();
+	//void setupDebugCallback();
 	void initWindow();
 	static void onWindowResize(GLFWwindow* window, int width, int height);
 	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
-	std::vector<const char*> getRequiredExtensions();
 	void initVulkan();
 	void createColorResources();
 	VkSampleCountFlagBits getMaxUsableSampleCount();

@@ -12,24 +12,6 @@ const std::vector<const char*> deviceExtensions = {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
-// Finds the address of the 'vkCreateDebugReportCallbackEXT' extension function as it is not loaded automatically
-VkResult CreateDebugReportCallbackEXT(VkInstance instance, const VkDebugReportCallbackCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pCallback) {
-	auto func = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT");
-	if (func != nullptr) {
-		return func(instance, pCreateInfo, pAllocator, pCallback);
-	}
-	else {
-		return VK_ERROR_EXTENSION_NOT_PRESENT;
-	}
-}
-
-void DestroyDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackEXT callback, const VkAllocationCallbacks* pAllocator) {
-	auto func = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugReportCallbackEXT");
-	if (func != nullptr) {
-		func(instance, callback, pAllocator);
-	}
-}
-
 void Renderer::run()
 {
 	initWindow();
@@ -80,11 +62,9 @@ QueueFamilyIndices Renderer::findQueueFamilies(VkPhysicalDevice device) {
     return indices;
 }
 
-
-
 void Renderer::initVulkan() {
 	instance = Instance::getInstance();
-    setupDebugCallback();
+	debugger.setupDebugCallback(instance);
     createSurface();
     pickPhysicalDevice();
     createLogicalDevice();
@@ -318,7 +298,6 @@ void Renderer::createTextureImage() {
 		
 	transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
 	copyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-	//transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels);
 
 	vkDestroyBuffer(device, stagingBuffer, nullptr);
 	vkFreeMemory(device, stagingBufferMemory, nullptr);
@@ -1465,7 +1444,7 @@ void Renderer::cleanup() {
 	vkDestroyBuffer(device, indexBuffer, nullptr);
 	vkFreeMemory(device, indexBufferMemory, nullptr);
     vkDestroyDevice(device, nullptr);
-    DestroyDebugReportCallbackEXT(instance, callback, nullptr);
+	debugger.DestroyDebugReportCallbackEXT(instance, nullptr);
     vkDestroySurfaceKHR(instance, surface, nullptr);
     vkDestroyInstance(instance, nullptr);
 
@@ -1491,23 +1470,4 @@ void Renderer::updateUniformBuffer(uint32_t currentImage) {
 	vkMapMemory(device, uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &data);
 	memcpy(data, &ubo, sizeof(ubo));
 	vkUnmapMemory(device, uniformBuffersMemory[currentImage]);
-}
-
-VKAPI_ATTR VkBool32 VKAPI_CALL Renderer::debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objType, uint64_t obj, size_t location, int32_t code, const char * layerPrefix, const char * msg, void * userData)
-{
-	std::cerr << "validation layer: " << msg << std::endl;
-
-	return VK_FALSE;
-}
-
-void Renderer::setupDebugCallback() {
-    if (!enableValidationLayers) return;
-    VkDebugReportCallbackCreateInfoEXT createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
-    createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
-    createInfo.pfnCallback = debugCallback;
-
-    if (CreateDebugReportCallbackEXT(instance, &createInfo, nullptr, &callback) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to set up debug callback");
-    }
 }
