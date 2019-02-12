@@ -28,4 +28,4 @@
 #include "Helpers.h"
 #include "Vulkan/Instance.h"
 #include "Vulkan/Renderer.h"
-#include "Vulkan/Debug/DebugLayer.h"
+#include "Vulkan/DebugLayer.h"
