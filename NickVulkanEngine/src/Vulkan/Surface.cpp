@@ -1,8 +1,8 @@
 #include "nvepch.h"
 #include "Surface.h"
 
-Surface::Surface(const Instance * _parent, VkPhysicalDevice physicalDevice, void * _window) : 
-	m_Instance(_parent), m_PhysicalDevice(physicalDevice), m_Window(reinterpret_cast<GLFWwindow*>(_window))
+Surface::Surface(const Instance * _parent, VkPhysicalDevice physicalDevice, VkDevice logicalDevice, void * _window) :
+	m_Instance(_parent), m_PhysicalDevice(physicalDevice), m_LogicalDevice(logicalDevice), m_Window(reinterpret_cast<GLFWwindow*>(_window))
 {
 	createSurface();
 }
@@ -20,7 +20,7 @@ Surface::~Surface()
 {
 }
 
-void Surface::createSurface() {
+void Surface::createSurface(VkFormat swapChainImageFormat) {
 	if (glfwCreateWindowSurface(m_Instance->getInstance(), m_Window, nullptr, &m_Surface) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create window surface");
 	}
@@ -40,7 +40,7 @@ void Surface::createSurface() {
 		createInfo.subresourceRange.levelCount = 1;
 		createInfo.subresourceRange.baseArrayLayer = 0;
 		createInfo.subresourceRange.layerCount = 1;
-		if (vkCreateImageView(device, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) {
+		if (vkCreateImageView(m_LogicalDevice, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create image views!");
 		}
 	}
