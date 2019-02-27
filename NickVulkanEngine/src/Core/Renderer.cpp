@@ -21,9 +21,7 @@ void Renderer::run()
 	cleanup();
 }
 
-Renderer::Renderer() :
-	instance(new Instance()),
-	surface(new Surface(instance, window))
+Renderer::Renderer()
 {
 }
 
@@ -78,6 +76,8 @@ QueueFamilyIndices Renderer::findQueueFamilies(VkPhysicalDevice device) {
 void Renderer::initVulkan() {
 	//instance = instance.getInstance();
 	//instance = Instance();
+	instance = new Instance();
+	surface = new Surface(instance, window);
 	debugger.setupDebugCallback(instance->getInstance());
 	surface = new Surface(instance, window);
 	//createSurface();
