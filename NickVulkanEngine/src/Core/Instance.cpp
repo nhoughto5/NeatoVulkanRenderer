@@ -1,9 +1,7 @@
 #include "nvepch.h"
-#include "Instance.h"
 
-VkInstance& Instance::getInstance()
+Instance::Instance()
 {
-	VkInstance instance;
 	if (enableValidationLayers && !checkValidationLayerSupport()) {
 		throw std::runtime_error("Validation layers requested but not available");
 	}
@@ -32,12 +30,19 @@ VkInstance& Instance::getInstance()
 		createInfo.enabledLayerCount = 0;
 	}
 
-	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
+	if (vkCreateInstance(&createInfo, nullptr, &m_Instance) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create instance!");
 	}
-	return instance;
 }
 
+Instance::~Instance()
+{
+	vkDestroyInstance(m_Instance, nullptr);
+}
+
+const VkInstance& Instance::getInstance() const {
+	return m_Instance;
+}
 
 std::vector<const char*> Instance::getRequiredExtensions() {
 	uint32_t glfwExtensionCount = 0;
