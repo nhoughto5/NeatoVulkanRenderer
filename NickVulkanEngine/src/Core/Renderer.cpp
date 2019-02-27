@@ -1,4 +1,5 @@
 #include "nvepch.h"
+#include "Renderer.h"
 #include <stb_image.h>
 #include <tiny_obj_loader.h>
 
@@ -18,6 +19,18 @@ void Renderer::run()
 	initVulkan();
 	mainLoop();
 	cleanup();
+}
+
+Renderer::Renderer() :
+	instance(new Instance()),
+	surface(new Surface(instance, window))
+{
+}
+
+Renderer::~Renderer()
+{
+	delete instance;
+	delete surface;
 }
 
 void Renderer::initWindow() {
@@ -45,7 +58,7 @@ QueueFamilyIndices Renderer::findQueueFamilies(VkPhysicalDevice device) {
 	int i = 0;
 	for (const auto& queueFamily : queueFamilies) {
 		VkBool32 presentSupport = false;
-		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
+		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface->getSurface(), &presentSupport);
 
 		if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
 			indices.graphicsFamily = i;
@@ -63,9 +76,11 @@ QueueFamilyIndices Renderer::findQueueFamilies(VkPhysicalDevice device) {
 }
 
 void Renderer::initVulkan() {
-	instance = Instance::getInstance();
-	debugger.setupDebugCallback(instance);
-	createSurface();
+	//instance = instance.getInstance();
+	//instance = Instance();
+	debugger.setupDebugCallback(instance->getInstance());
+	surface = new Surface(instance, window);
+	//createSurface();
 	pickPhysicalDevice();
 	createLogicalDevice();
 	createSwapChain();
@@ -1053,7 +1068,7 @@ void Renderer::createImageViews() {
 }
 
 void Renderer::createSurface() {
-	if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
+	if (glfwCreateWindowSurface(instance->getInstance(), window, nullptr, &(surface->getSurface())) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create window surface");
 	}
 
@@ -1131,12 +1146,12 @@ void Renderer::createLogicalDevice() {
 // Pick an available GPU
 void Renderer::pickPhysicalDevice() {
 	uint32_t deviceCount = 0;
-	vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+	vkEnumeratePhysicalDevices(instance->getInstance(), &deviceCount, nullptr);
 	if (deviceCount == 0) {
 		throw std::runtime_error("Failed to find GPUs with Vulkan Support");
 	}
 	std::vector<VkPhysicalDevice> devices(deviceCount);
-	vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+	vkEnumeratePhysicalDevices(instance->getInstance(), &deviceCount, devices.data());
 	for (const auto& device : devices) {
 		if (isDeviceSuitable(device)) {
 			physicalDevice = device;
@@ -1231,7 +1246,7 @@ void Renderer::createSwapChain() {
 
 	VkSwapchainCreateInfoKHR createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-	createInfo.surface = surface;
+	createInfo.surface = surface->getSurface();
 	createInfo.minImageCount = imageCount;
 	createInfo.imageFormat = surfaceFormat.format;
 	createInfo.imageColorSpace = surfaceFormat.colorSpace;
@@ -1303,21 +1318,21 @@ VkExtent2D Renderer::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabiliti
 // Check to see if swap chain is compatible with window surface
 SwapChainSupportDetails Renderer::querySwapChainSupport(VkPhysicalDevice device) {
 	SwapChainSupportDetails details;
-	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface->getSurface(), &details.capabilities);
 
 	uint32_t formatCount;
-	vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
+	vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface->getSurface(), &formatCount, nullptr);
 	if (formatCount != 0) {
 		details.formats.resize(formatCount);
-		vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
+		vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface->getSurface(), &formatCount, details.formats.data());
 	}
 
 	uint32_t presentModeCount;
-	vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
+	vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface->getSurface(), &presentModeCount, nullptr);
 
 	if (presentModeCount != 0) {
 		details.presentModes.resize(presentModeCount);
-		vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.presentModes.data());
+		vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface->getSurface(), &presentModeCount, details.presentModes.data());
 	}
 
 	return details;
@@ -1450,9 +1465,9 @@ void Renderer::cleanup() {
 	vkDestroyBuffer(device, indexBuffer, nullptr);
 	vkFreeMemory(device, indexBufferMemory, nullptr);
 	vkDestroyDevice(device, nullptr);
-	debugger.DestroyDebugReportCallbackEXT(instance, nullptr);
-	vkDestroySurfaceKHR(instance, surface, nullptr);
-	vkDestroyInstance(instance, nullptr);
+	debugger.DestroyDebugReportCallbackEXT(instance->getInstance(), nullptr);
+	vkDestroySurfaceKHR(instance->getInstance(), surface->getSurface(), nullptr);
+	vkDestroyInstance(instance->getInstance(), nullptr);
 
 	glfwDestroyWindow(window);
 	vkDestroyBuffer(device, vertexBuffer, nullptr);

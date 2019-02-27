@@ -3,7 +3,7 @@
 class DebugLayer
 {
 public:
-	void setupDebugCallback(VkInstance& instance);
+	void setupDebugCallback(const VkInstance& instance);
 	void DestroyDebugReportCallbackEXT(VkInstance instance, const VkAllocationCallbacks* pAllocator);
 
 private:

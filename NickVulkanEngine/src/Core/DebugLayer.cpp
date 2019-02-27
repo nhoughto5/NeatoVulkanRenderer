@@ -7,7 +7,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebu
 	return VK_FALSE;
 }
 
-void DebugLayer::setupDebugCallback(VkInstance& instance) {
+void DebugLayer::setupDebugCallback(const VkInstance& instance) {
 	if (!enableValidationLayers) return;
 
 	VkDebugReportCallbackCreateInfoEXT createInfo = {};
