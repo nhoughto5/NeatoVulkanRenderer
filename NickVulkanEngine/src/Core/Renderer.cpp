@@ -21,10 +21,6 @@ void Renderer::run()
 	cleanup();
 }
 
-Renderer::Renderer()
-{
-}
-
 Renderer::~Renderer()
 {
 	delete instance;

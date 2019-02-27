@@ -10,4 +10,3 @@ private:
 	VkDebugReportCallbackEXT callback;
 	VkResult CreateDebugReportCallbackEXT(VkInstance instance, const VkDebugReportCallbackCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugReportCallbackEXT* pCallback);
 };
-

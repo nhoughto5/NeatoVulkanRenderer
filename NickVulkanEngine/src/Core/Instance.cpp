@@ -2,7 +2,6 @@
 
 Instance::Instance()
 {
-	//Instance::m_Instance = VK_NULL_HANDLE;
 	if (enableValidationLayers && !checkValidationLayerSupport()) {
 		throw std::runtime_error("Validation layers requested but not available");
 	}
