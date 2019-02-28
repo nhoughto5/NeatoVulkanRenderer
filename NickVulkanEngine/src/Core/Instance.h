@@ -1,4 +1,5 @@
 #pragma once
+#include "Common.h"
 
 const std::vector<const char*> validationLayers = {
 	"VK_LAYER_LUNARG_standard_validation"

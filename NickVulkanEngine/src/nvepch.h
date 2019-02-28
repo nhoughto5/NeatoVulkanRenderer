@@ -26,7 +26,3 @@
 #include <fstream>
 #include "Vertex.h"
 #include "Helpers.h"
-#include "Core/Instance.h"
-#include "Core/Common.h"
-#include "Core/DebugLayer.h"
-#include "Core/Surface.h"

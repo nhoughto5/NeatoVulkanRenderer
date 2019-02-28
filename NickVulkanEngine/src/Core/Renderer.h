@@ -1,5 +1,9 @@
 #pragma once
 #include "DebugLayer.h"
+#include "Instance.h"
+#include "Common.h"
+#include "Surface.h"
+
 const int WIDTH = 800;
 const int HEIGHT = 600;
 const std::string MODEL_PATH = "models/chalet.obj";

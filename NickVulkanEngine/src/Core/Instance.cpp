@@ -1,4 +1,5 @@
 #include "nvepch.h"
+#include "Instance.h"
 
 Instance::Instance()
 {
