@@ -3,6 +3,7 @@
 #include "Instance.h"
 #include "Common.h"
 #include "Surface.h"
+#include "PhysicalDevice.h"
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
@@ -18,11 +19,11 @@ private:
 	DebugLayer debugger;
 	Instance *instance;
 	GLFWwindow * window;
-	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+	Surface* surface;
+	PhysicalDevice* physicalDevice;
+
 	VkDevice device;
 	VkQueue graphicsQueue;
-	Surface* surface;
-	//VkSurfaceKHR surface;
 	VkQueue presentQueue;
 	VkSwapchainKHR swapChain;
 	std::vector<VkImage> swapChainImages;
@@ -53,7 +54,6 @@ private:
 	VkDeviceMemory depthImageMemory;
 	VkImageView depthImageView;
 	uint32_t mipLevels;
-	VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 	std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;
 	VkImage colorImage;
@@ -63,10 +63,8 @@ private:
 	//void setupDebugCallback();
 	void initWindow();
 	static void onWindowResize(GLFWwindow* window, int width, int height);
-	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 	void initVulkan();
 	void createColorResources();
-	VkSampleCountFlagBits getMaxUsableSampleCount();
 	void loadModel();
 	void createDepthResources();
 	VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
@@ -103,7 +101,6 @@ private:
 
 	// Pick an available GPU
 	void pickPhysicalDevice();
-	bool isDeviceSuitable(VkPhysicalDevice device);
 
 	// Setting the color depth
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
@@ -119,10 +116,6 @@ private:
 	// Choosing the resolution of Images in swap chain
 	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
-	// Check to see if swap chain is compatible with window surface
-	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
-
-	bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 	void drawFrame();
 	void mainLoop();
 	void cleanupSwapChain();
