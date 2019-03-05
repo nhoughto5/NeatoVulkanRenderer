@@ -3,6 +3,7 @@
 #include "Instance.h"
 #include "Common.h"
 #include "Surface.h"
+#include "PhysicalDevice.h"
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
@@ -18,11 +19,11 @@ private:
 	DebugLayer debugger;
 	Instance *instance;
 	GLFWwindow * window;
-	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+	Surface* surface;
+	PhysicalDevice* physicalDevice;
+
 	VkDevice device;
 	VkQueue graphicsQueue;
-	Surface* surface;
-	//VkSurfaceKHR surface;
 	VkQueue presentQueue;
 	VkSwapchainKHR swapChain;
 	std::vector<VkImage> swapChainImages;
@@ -103,7 +104,6 @@ private:
 
 	// Pick an available GPU
 	void pickPhysicalDevice();
-	bool isDeviceSuitable(VkPhysicalDevice device);
 
 	// Setting the color depth
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
