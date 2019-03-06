@@ -3,6 +3,7 @@
 #include "Instance.h"
 #include "Common.h"
 #include "Surface.h"
+#include "LogicalDevice.h"
 #include "PhysicalDevice.h"
 
 const int WIDTH = 800;
@@ -21,10 +22,8 @@ private:
 	GLFWwindow * window;
 	Surface* surface;
 	PhysicalDevice* physicalDevice;
+	LogicalDevice* logicalDevice;
 
-	VkDevice device;
-	VkQueue graphicsQueue;
-	VkQueue presentQueue;
 	VkSwapchainKHR swapChain;
 	std::vector<VkImage> swapChainImages;
 	VkFormat swapChainImageFormat;
@@ -97,10 +96,6 @@ private:
 	VkShaderModule createShaderModule(const std::vector<char>& code);
 	void createImageViews();
 	void createSurface();
-	void createLogicalDevice();
-
-	// Pick an available GPU
-	void pickPhysicalDevice();
 
 	// Setting the color depth
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
