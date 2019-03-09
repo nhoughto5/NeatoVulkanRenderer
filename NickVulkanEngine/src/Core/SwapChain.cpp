@@ -109,14 +109,14 @@ VkSurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfac
 		}
 	}
 }
-
-void SwapChain::createImageViews() {
-	swapChainImageViews.resize(swapChainImages.size());
-
-	for (uint32_t i = 0; i < swapChainImages.size(); i++) {
-		swapChainImageViews[i] = createImageView(swapChainImages[i], m_SwapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, m_LogicalDevice->getLogicalDevice());
-	}
-}
+//
+//void SwapChain::createImageViews() {
+//	swapChainImageViews.resize(swapChainImages.size());
+//
+//	for (uint32_t i = 0; i < swapChainImages.size(); i++) {
+//		swapChainImageViews[i] = createImageView(swapChainImages[i], m_SwapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, m_LogicalDevice->getLogicalDevice());
+//	}
+//}
 
 SwapChain::~SwapChain()
 {
