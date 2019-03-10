@@ -64,6 +64,7 @@ private:
 	void initWindow();
 	static void onWindowResize(GLFWwindow* window, int width, int height);
 	void initVulkan();
+	void createImageViews();
 	void createColorResources();
 	void loadModel();
 	void createDepthResources();
