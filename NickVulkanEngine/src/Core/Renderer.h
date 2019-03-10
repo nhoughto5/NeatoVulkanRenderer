@@ -5,6 +5,7 @@
 #include "Surface.h"
 #include "LogicalDevice.h"
 #include "PhysicalDevice.h"
+#include "SwapChain.h"
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
@@ -23,12 +24,13 @@ private:
 	Surface* surface;
 	PhysicalDevice* physicalDevice;
 	LogicalDevice* logicalDevice;
+	SwapChain* swapChain;
 
-	VkSwapchainKHR swapChain;
-	std::vector<VkImage> swapChainImages;
-	VkFormat swapChainImageFormat;
-	VkExtent2D swapChainExtent;
-	std::vector<VkImageView> swapChainImageViews;
+	//VkSwapchainKHR swapChain;
+	//std::vector<VkImage> swapChainImages;
+	//VkFormat swapChainImageFormat;
+	//VkExtent2D swapChainExtent;
+	//std::vector<VkImageView> swapChainImageViews;
 	VkRenderPass renderPass;
 	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
@@ -59,10 +61,10 @@ private:
 	VkDeviceMemory colorImageMemory;
 	VkImageView colorImageView;
 
-	//void setupDebugCallback();
 	void initWindow();
 	static void onWindowResize(GLFWwindow* window, int width, int height);
 	void initVulkan();
+	void createImageViews();
 	void createColorResources();
 	void loadModel();
 	void createDepthResources();
@@ -71,7 +73,6 @@ private:
 	bool hasStencilComponent(VkFormat format);
 	void createTextureSampler();
 	void createTextureImageView();
-	VkImageView createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels);
 	void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
 	void createTextureImage();
 	void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
@@ -94,22 +95,10 @@ private:
 	void createRenderPass();
 	void createGraphicsPipeline();
 	VkShaderModule createShaderModule(const std::vector<char>& code);
-	void createImageViews();
-	void createSurface();
-
-	// Setting the color depth
-	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-
-	// Choose the conditions which dictate the swapping of rendered images to the screen
-	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
 
 	void recreateSwapChain();
-	void createSwapChain();
 
 	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-
-	// Choosing the resolution of Images in swap chain
-	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
 	void drawFrame();
 	void mainLoop();
