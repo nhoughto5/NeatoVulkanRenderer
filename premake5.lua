@@ -1,6 +1,6 @@
-workspace "NickVulkanEngine"
+workspace "NeatoVulkanRenderer"
 	architecture "x64"
-	startproject "NickVulkanEngine"
+	startproject "NeatoVulkanRenderer"
 	configurations
 	{
 		"Debug",
@@ -16,15 +16,15 @@ IncludeDir["STB"] = "ExternalResources/stb"
 IncludeDir["VULKAN"] = "ExternalResources/Vulkan/Include"
 IncludeDir["TOL"] = "ExternalResources/tinyobjloader"
 
-project "NickVulkanEngine"
-	location "NickVulkanEngine"
+project "NeatoVulkanRenderer"
+	location "NeatoVulkanRenderer"
 	kind "ConsoleApp"
 	language "C++"
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 	staticruntime "off"
-	pchheader "nvepch.h"
-	pchsource "NickVulkanEngine/src/nvepch.cpp"
+	pchheader "nvrpch.h"
+	pchsource "NeatoVulkanRenderer/src/nvrpch.cpp"
 	files
 	{
 		"%{prj.name}/src/**.h",
@@ -59,16 +59,16 @@ project "NickVulkanEngine"
 		}
 
 	filter "configurations:Debug"
-		defines "NVE_DEBUG"
+		defines "NVR_DEBUG"
 		runtime "Debug"
 		symbols "On"
 
 	filter "configurations:Release"
-		defines "NVE_RELEASE"
+		defines "NVR_RELEASE"
 		runtime "Release"
 		optimize "On"
 
 	filter "configurations:Dist"
-		defines "NVE_DIST"
+		defines "NVR_DIST"
 		runtime "Release"
 		optimize "On"

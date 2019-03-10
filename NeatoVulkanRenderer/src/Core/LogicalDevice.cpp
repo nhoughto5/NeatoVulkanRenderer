@@ -1,4 +1,4 @@
-#include "nvepch.h"
+#include "nvrpch.h"
 #include "LogicalDevice.h"
 
 LogicalDevice::LogicalDevice(PhysicalDevice* physicalDevice)
