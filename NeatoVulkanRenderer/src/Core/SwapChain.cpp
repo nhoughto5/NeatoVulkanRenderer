@@ -120,8 +120,17 @@ void SwapChain::createImageViews() {
 	}
 }
 
+void SwapChain::Cleanup() {
+	for (size_t i = 0; i < swapChainImageViews.size(); i++) {
+		vkDestroyImageView(m_LogicalDevice->getLogicalDevice(), swapChainImageViews[i], nullptr);
+	}
+
+	vkDestroySwapchainKHR(m_LogicalDevice->getLogicalDevice(), m_SwapChain, nullptr);
+}
+
 SwapChain::~SwapChain()
 {
+	Cleanup();
 }
 
 VkFormat SwapChain::getSwapChainImageFormat()

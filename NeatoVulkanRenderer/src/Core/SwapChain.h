@@ -17,6 +17,7 @@ public:
 	const std::vector<VkImageView>& getSwapChainImageViews() const;
 
 	VkSwapchainKHR getSwapChain();
+	void Cleanup();
 private:
 	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);

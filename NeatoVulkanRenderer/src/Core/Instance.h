@@ -9,6 +9,7 @@ class Instance
 {
 public:
 	Instance();
+	void Cleanup();
 	~Instance();
 	const VkInstance &getInstance() const;
 private:

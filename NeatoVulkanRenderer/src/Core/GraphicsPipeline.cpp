@@ -173,6 +173,12 @@ GraphicsPipeline::GraphicsPipeline(PhysicalDevice* physicalDevice, LogicalDevice
 
 GraphicsPipeline::~GraphicsPipeline()
 {
+	Cleanup();
+}
+
+void GraphicsPipeline::Cleanup() {
+	vkDestroyPipeline(m_LogicalDevice->getLogicalDevice(), m_GraphicsPipeline, nullptr);
+	vkDestroyPipelineLayout(m_LogicalDevice->getLogicalDevice(), m_PipelineLayout, nullptr);
 }
 
 VkPipeline GraphicsPipeline::getGraphicsPipeline()

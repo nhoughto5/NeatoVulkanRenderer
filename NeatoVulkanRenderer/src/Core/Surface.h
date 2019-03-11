@@ -6,6 +6,7 @@ public:
 	Surface(const Instance* _parent, void* window);
 	Surface(Surface&& other);
 	Surface& operator=(Surface&& other);
+	void Cleanup();
 	~Surface();
 
 	void Recreate();

@@ -36,9 +36,13 @@ Instance::Instance()
 	}
 }
 
+void Instance::Cleanup() {
+	vkDestroyInstance(m_Instance, nullptr);
+}
+
 Instance::~Instance()
 {
-	vkDestroyInstance(m_Instance, nullptr);
+	Cleanup();
 }
 
 const VkInstance& Instance::getInstance() const {

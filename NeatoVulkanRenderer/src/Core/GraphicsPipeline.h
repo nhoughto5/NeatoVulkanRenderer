@@ -7,6 +7,8 @@ class GraphicsPipeline {
 public:
 	GraphicsPipeline(PhysicalDevice* physicalDevice, LogicalDevice* logicalDevice, SwapChain* swapChain, RenderPass* renderPass);
 	~GraphicsPipeline();
+
+	void Cleanup();
 	
 	VkPipeline getGraphicsPipeline();
 	VkPipelineLayout getGraphicsPipelineLayout();

@@ -20,8 +20,13 @@ Surface & Surface::operator=(Surface&& other)
 	return *this;
 }
 
+void Surface::Cleanup() {
+	vkDestroySurfaceKHR(m_Instance->getInstance(), m_Surface, nullptr);
+}
+
 Surface::~Surface()
 {
+	Cleanup();
 }
 
 void Surface::createSurface() {

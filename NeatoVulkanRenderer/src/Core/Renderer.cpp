@@ -783,7 +783,7 @@ void Renderer::mainLoop() {
 }
 
 void Renderer::cleanupSwapChain() {
-	// TODO: the wrapper classes hold references to now dead members
+
 	vkDestroyImageView(logicalDevice->getLogicalDevice(), colorImageView, nullptr);
 	vkDestroyImage(logicalDevice->getLogicalDevice(), colorImage, nullptr);
 	vkFreeMemory(logicalDevice->getLogicalDevice(), colorImageMemory, nullptr);
@@ -798,14 +798,8 @@ void Renderer::cleanupSwapChain() {
 
 	vkFreeCommandBuffers(logicalDevice->getLogicalDevice(), commandPool, static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());
 
-	vkDestroyPipeline(logicalDevice->getLogicalDevice(), graphicsPipeline->getGraphicsPipeline(), nullptr);
-	vkDestroyPipelineLayout(logicalDevice->getLogicalDevice(), graphicsPipeline->getGraphicsPipelineLayout(), nullptr);
-
-	for (size_t i = 0; i < swapChain->getSwapChainImageViews().size(); i++) {
-		vkDestroyImageView(logicalDevice->getLogicalDevice(), swapChain->getSwapChainImageViews()[i], nullptr);
-	}
-
-	vkDestroySwapchainKHR(logicalDevice->getLogicalDevice(), swapChain->getSwapChain(), nullptr);
+	graphicsPipeline->Cleanup();
+	swapChain->Cleanup();
 }
 
 void Renderer::cleanup() {
@@ -834,8 +828,9 @@ void Renderer::cleanup() {
 	vkFreeMemory(logicalDevice->getLogicalDevice(), indexBufferMemory, nullptr);
 	vkDestroyDevice(logicalDevice->getLogicalDevice(), nullptr);
 	debugger.DestroyDebugReportCallbackEXT(instance->getInstance(), nullptr);
-	vkDestroySurfaceKHR(instance->getInstance(), surface->getSurface(), nullptr);
-	vkDestroyInstance(instance->getInstance(), nullptr);
+
+	surface->Cleanup();
+	instance->Cleanup();
 
 	glfwDestroyWindow(window);
 	vkDestroyBuffer(logicalDevice->getLogicalDevice(), vertexBuffer, nullptr);
