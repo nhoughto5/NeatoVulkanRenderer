@@ -7,6 +7,7 @@
 #include "PhysicalDevice.h"
 #include "SwapChain.h"
 #include "RenderPass.h"
+#include "GraphicsPipeline.h"
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
@@ -27,9 +28,8 @@ private:
 	LogicalDevice* logicalDevice;
 	SwapChain* swapChain;
 	RenderPass* renderPass;
+	GraphicsPipeline* graphicsPipeline;
 
-	VkPipelineLayout pipelineLayout;
-	VkPipeline graphicsPipeline;
 	std::vector<VkFramebuffer> swapChainFrameBuffers;
 	VkCommandPool commandPool;
 	std::vector<VkCommandBuffer> commandBuffers;
@@ -38,7 +38,6 @@ private:
 	VkDeviceMemory vertexBufferMemory;
 	VkBuffer indexBuffer;
 	VkDeviceMemory indexBufferMemory;
-	VkDescriptorSetLayout descriptorSetLayout;
 	std::vector<VkBuffer> uniformBuffers;
 	std::vector<VkDeviceMemory> uniformBuffersMemory;
 	VkDescriptorPool descriptorPool;
@@ -72,7 +71,6 @@ private:
 	void createDescriptorSets();
 	void createDescriptorPool();
 	void createUniformBuffers();
-	void createDescriptorSetLayout();
 	void createIndexBuffer();
 	void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
 	void createVertexBuffer();
@@ -85,8 +83,6 @@ private:
 	void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 	void createCommandPool();
 	void createFrameBuffers();
-	void createGraphicsPipeline();
-	VkShaderModule createShaderModule(const std::vector<char>& code);
 
 	void recreateSwapChain();
 
