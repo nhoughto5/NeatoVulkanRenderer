@@ -6,6 +6,7 @@
 #include "LogicalDevice.h"
 #include "PhysicalDevice.h"
 #include "SwapChain.h"
+#include "RenderPass.h"
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
@@ -25,13 +26,8 @@ private:
 	PhysicalDevice* physicalDevice;
 	LogicalDevice* logicalDevice;
 	SwapChain* swapChain;
+	RenderPass* renderPass;
 
-	//VkSwapchainKHR swapChain;
-	//std::vector<VkImage> swapChainImages;
-	//VkFormat swapChainImageFormat;
-	//VkExtent2D swapChainExtent;
-	//std::vector<VkImageView> swapChainImageViews;
-	VkRenderPass renderPass;
 	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
 	std::vector<VkFramebuffer> swapChainFrameBuffers;
@@ -64,12 +60,9 @@ private:
 	void initWindow();
 	static void onWindowResize(GLFWwindow* window, int width, int height);
 	void initVulkan();
-	void createImageViews();
 	void createColorResources();
 	void loadModel();
 	void createDepthResources();
-	VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
-	VkFormat findDepthFormat();
 	bool hasStencilComponent(VkFormat format);
 	void createTextureSampler();
 	void createTextureImageView();
@@ -92,7 +85,6 @@ private:
 	void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 	void createCommandPool();
 	void createFrameBuffers();
-	void createRenderPass();
 	void createGraphicsPipeline();
 	VkShaderModule createShaderModule(const std::vector<char>& code);
 

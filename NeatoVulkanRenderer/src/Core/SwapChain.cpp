@@ -1,7 +1,6 @@
 #include "nvrpch.h"
 #include "SwapChain.h"
 
-
 SwapChain::SwapChain(GLFWwindow* window, LogicalDevice *logicalDevice, PhysicalDevice *physicalDevice, Surface* surface)
 	:
 	m_Window(window),
@@ -97,6 +96,7 @@ VkPresentModeKHR SwapChain::chooseSwapPresentMode(const std::vector<VkPresentMod
 
 	return bestMode;
 }
+
 // Setting the color depth
 VkSurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
 	// Ideal: can choose any color format
