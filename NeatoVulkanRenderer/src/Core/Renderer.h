@@ -31,7 +31,7 @@ private:
 	GraphicsPipeline* graphicsPipeline;
 
 	std::vector<VkFramebuffer> swapChainFrameBuffers;
-	VkCommandPool commandPool;
+	//VkCommandPool commandPool;
 	std::vector<VkCommandBuffer> commandBuffers;
 	VkSemaphore imageAvailableSemaphore, renderFinishedSemaphore;
 	VkBuffer vertexBuffer;
