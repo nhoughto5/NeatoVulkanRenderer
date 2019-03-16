@@ -8,6 +8,7 @@
 #include "SwapChain.h"
 #include "RenderPass.h"
 #include "GraphicsPipeline.h"
+#include "CommandBus.h"
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
@@ -29,10 +30,8 @@ private:
 	SwapChain* swapChain;
 	RenderPass* renderPass;
 	GraphicsPipeline* graphicsPipeline;
+	CommandBus* commandBus;
 
-	std::vector<VkFramebuffer> swapChainFrameBuffers;
-	//VkCommandPool commandPool;
-	std::vector<VkCommandBuffer> commandBuffers;
 	VkSemaphore imageAvailableSemaphore, renderFinishedSemaphore;
 	VkBuffer vertexBuffer;
 	VkDeviceMemory vertexBufferMemory;
@@ -44,17 +43,14 @@ private:
 	std::vector<VkDescriptorSet> descriptorSets;
 	VkImage textureImage;
 	VkDeviceMemory textureImageMemory;
-	VkImageView textureImageView;
 	VkSampler textureSampler;
 	VkImage depthImage;
 	VkDeviceMemory depthImageMemory;
-	VkImageView depthImageView;
 	uint32_t mipLevels;
 	std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;
 	VkImage colorImage;
 	VkDeviceMemory colorImageMemory;
-	VkImageView colorImageView;
 
 	void initWindow();
 	static void onWindowResize(GLFWwindow* window, int width, int height);

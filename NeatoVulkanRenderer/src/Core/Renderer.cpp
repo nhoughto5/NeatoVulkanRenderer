@@ -52,6 +52,7 @@ void Renderer::initVulkan() {
 	swapChain = new SwapChain(window, logicalDevice, physicalDevice, surface);
 	renderPass = new RenderPass(physicalDevice, logicalDevice, swapChain);
 	graphicsPipeline = new GraphicsPipeline(physicalDevice, logicalDevice, swapChain, renderPass);
+	commandBus = new CommandBus(physicalDevice, logicalDevice, swapChain, renderPass);
 
 	createCommandPool();
 	createDepthResources();
@@ -564,31 +565,6 @@ void Renderer::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width,
 	endSingleTimeCommands(commandBuffer);
 }
 
-void Renderer::createFrameBuffers() {
-	swapChainFrameBuffers.resize(swapChain->getSwapChainImageViews().size());
-
-	for (size_t i = 0; i < swapChain->getSwapChainImageViews().size(); ++i) {
-		std::array<VkImageView, 3> attachments = {
-			colorImageView,
-			depthImageView,
-			swapChain->getSwapChainImageViews()[i]
-		};
-
-		VkFramebufferCreateInfo frameBufferInfo = {};
-		frameBufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		frameBufferInfo.renderPass = renderPass->getRenderPass();
-		frameBufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-		frameBufferInfo.pAttachments = attachments.data();
-		frameBufferInfo.width = swapChain->getSwapChainExtent().width;
-		frameBufferInfo.height = swapChain->getSwapChainExtent().height;
-		frameBufferInfo.layers = 1;
-
-		if (vkCreateFramebuffer(logicalDevice->getLogicalDevice(), &frameBufferInfo, nullptr, &swapChainFrameBuffers[i]) != VK_SUCCESS) {
-			throw std::runtime_error("Failed to create framebuffer");
-		}
-	}
-}
-
 void Renderer::recreateSwapChain() {
 	int width, height;
 	glfwGetWindowSize(window, &width, &height);
@@ -640,7 +616,7 @@ void Renderer::drawFrame() {
 	submitInfo.pWaitSemaphores = waitSemaphores;
 	submitInfo.pWaitDstStageMask = waitStages;
 	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
+	submitInfo.pCommandBuffers = commandBus->getCommandBufferByIndex(imageIndex);
 
 	// Which semaphore to signal once the command buffer has finished execution
 	VkSemaphore signalSemaphores[] = { renderFinishedSemaphore };
@@ -696,7 +672,7 @@ void Renderer::cleanupSwapChain() {
 		vkDestroyFramebuffer(logicalDevice->getLogicalDevice(), swapChainFrameBuffers[i], nullptr);
 	}
 
-	vkFreeCommandBuffers(logicalDevice->getLogicalDevice(), commandPool, static_cast<uint32_t>(commandBuffers.size()), commandBuffers.data());
+	vkFreeCommandBuffers(logicalDevice->getLogicalDevice(), commandPool, static_cast<uint32_t>(commandBus->commandBuffersCount()), commandBuffers.data());
 
 	graphicsPipeline->Cleanup();
 	swapChain->Cleanup();

@@ -1,9 +1,12 @@
 #include "nvrpch.h"
 #include "CommandBus.h"
 
-CommandBus::CommandBus(PhysicalDevice* physicalDevice, LogicalDevice* logicalDevice) :
+CommandBus::CommandBus(PhysicalDevice* physicalDevice, LogicalDevice* logicalDevice, SwapChain* swapChain, RenderPass* renderPass, GraphicsPipeline* graphicsPipeline) :
 	m_PhysicalDevice(physicalDevice),
-	m_LogicalDevice(logicalDevice)
+	m_LogicalDevice(logicalDevice),
+	m_RenderPass(renderPass),
+	m_SwapChain(swapChain),
+	m_GraphicsPipeline(graphicsPipeline)
 {
 }
 
@@ -28,34 +31,35 @@ void CommandBus::createCommandPool() {
 	}
 }
 
-void CommandBus::createCommandBuffers() {
-	commandBuffers.resize(swapChainFrameBuffers.size());
+void CommandBus::createCommandBuffers(int numFrameBuffers) {
+	auto swapChainFrameBuffers = m_SwapChain->getSwapChainFrameBuffers();
+	m_CommandBuffers.resize(swapChainFrameBuffers.size());
 
 	VkCommandBufferAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.commandPool = m_CommandPool;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandBufferCount = (uint32_t)commandBuffers.size();
+	allocInfo.commandBufferCount = (uint32_t)m_CommandBuffers.size();
 
-	if (vkAllocateCommandBuffers(m_LogicalDevice->getLogicalDevice(), &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
+	if (vkAllocateCommandBuffers(m_LogicalDevice->getLogicalDevice(), &allocInfo, m_CommandBuffers.data()) != VK_SUCCESS) {
 		throw std::runtime_error("failed to allocate command buffers!");
 	}
 
-	for (size_t i = 0; i < commandBuffers.size(); i++) {
+	for (size_t i = 0; i < m_CommandBuffers.size(); i++) {
 		VkCommandBufferBeginInfo beginInfo = {};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
 
-		if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS) {
+		if (vkBeginCommandBuffer(m_CommandBuffers[i], &beginInfo) != VK_SUCCESS) {
 			throw std::runtime_error("failed to begin recording command buffer!");
 		}
 
 		VkRenderPassBeginInfo renderPassInfo = {};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = renderPass->getRenderPass();
+		renderPassInfo.renderPass = m_RenderPass->getRenderPass();
 		renderPassInfo.framebuffer = swapChainFrameBuffers[i];
 		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent = swapChain->getSwapChainExtent();
+		renderPassInfo.renderArea.extent = m_SwapChain->getSwapChainExtent();
 
 		std::array<VkClearValue, 2> clearValues = {};
 		clearValues[0].color = { 0.0f, 0.0f, 0.0f, 1.0f };
@@ -64,20 +68,20 @@ void CommandBus::createCommandBuffers() {
 		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 		renderPassInfo.pClearValues = clearValues.data();
 
-		vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		vkCmdBeginRenderPass(m_CommandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->getGraphicsPipeline());
+		vkCmdBindPipeline(m_CommandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline->getGraphicsPipeline());
 
 		VkBuffer vertexBuffers[] = { vertexBuffer };
 		VkDeviceSize offsets[] = { 0 };
-		vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
+		vkCmdBindVertexBuffers(m_CommandBuffers[i], 0, 1, vertexBuffers, offsets);
 
-		vkCmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-		vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline->getGraphicsPipelineLayout(), 0, 1, &descriptorSets[i], 0, nullptr);
-		vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
-		vkCmdEndRenderPass(commandBuffers[i]);
+		vkCmdBindIndexBuffer(m_CommandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindDescriptorSets(m_CommandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline->getGraphicsPipelineLayout(), 0, 1, &descriptorSets[i], 0, nullptr);
+		vkCmdDrawIndexed(m_CommandBuffers[i], static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+		vkCmdEndRenderPass(m_CommandBuffers[i]);
 
-		if (vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS) {
+		if (vkEndCommandBuffer(m_CommandBuffers[i]) != VK_SUCCESS) {
 			throw std::runtime_error("failed to record command buffer!");
 		}
 	}
@@ -114,4 +118,19 @@ void CommandBus::endSingleTimeCommands(VkCommandBuffer commandBuffer) {
 	vkQueueWaitIdle(m_LogicalDevice->getGraphicsQueue());
 
 	vkFreeCommandBuffers(m_LogicalDevice->getLogicalDevice(), m_CommandPool, 1, &commandBuffer);
+}
+
+VkCommandBuffer* CommandBus::getCommandBufferByIndex(int index)
+{
+	return &m_CommandBuffers[index];
+}
+
+int CommandBus::commandBuffersCount()
+{
+	return m_CommandBuffers.size();
+}
+
+VkCommandPool CommandBus::getPool()
+{
+	return m_CommandPool;
 }

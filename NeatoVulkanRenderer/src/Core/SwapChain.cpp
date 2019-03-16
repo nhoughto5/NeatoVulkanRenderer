@@ -55,12 +55,37 @@ SwapChain::SwapChain(GLFWwindow* window, LogicalDevice *logicalDevice, PhysicalD
 	}
 
 	vkGetSwapchainImagesKHR(m_LogicalDevice->getLogicalDevice(), m_SwapChain, &imageCount, nullptr);
-	swapChainImages.resize(imageCount);
-	vkGetSwapchainImagesKHR(m_LogicalDevice->getLogicalDevice(), m_SwapChain, &imageCount, swapChainImages.data());
+	m_SwapChainImages.resize(imageCount);
+	vkGetSwapchainImagesKHR(m_LogicalDevice->getLogicalDevice(), m_SwapChain, &imageCount, m_SwapChainImages.data());
 	m_SwapChainImageFormat = surfaceFormat.format;
 	m_SwapChainExtent = extent;
 
 	createImageViews();
+}
+
+void SwapChain::createFrameBuffers(RenderPass* renderPass) {
+	m_SwapChainFrameBuffers.resize(m_SwapChainImageViews.size());
+
+	for (size_t i = 0; i < m_SwapChainImageViews.size(); ++i) {
+		std::array<VkImageView, 3> attachments = {
+			m_ColorImageView,
+			m_DepthImageView,
+			m_SwapChainImageViews[i]
+		};
+
+		VkFramebufferCreateInfo frameBufferInfo = {};
+		frameBufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		frameBufferInfo.renderPass = renderPass->getRenderPass();
+		frameBufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+		frameBufferInfo.pAttachments = attachments.data();
+		frameBufferInfo.width = m_SwapChainExtent.width;
+		frameBufferInfo.height = m_SwapChainExtent.height;
+		frameBufferInfo.layers = 1;
+
+		if (vkCreateFramebuffer(m_LogicalDevice->getLogicalDevice(), &frameBufferInfo, nullptr, &m_SwapChainFrameBuffers[i]) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create framebuffer");
+		}
+	}
 }
 
 // Choosing the resolution of Images in swap chain
@@ -113,16 +138,16 @@ VkSurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfac
 }
 
 void SwapChain::createImageViews() {
-	swapChainImageViews.resize(swapChainImages.size());
+	m_SwapChainImageViews.resize(m_SwapChainImages.size());
 
-	for (uint32_t i = 0; i < swapChainImages.size(); i++) {
-		swapChainImageViews[i] = createImageView(swapChainImages[i], m_SwapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, m_LogicalDevice->getLogicalDevice());
+	for (uint32_t i = 0; i < m_SwapChainImages.size(); i++) {
+		m_SwapChainImageViews[i] = createImageView(m_SwapChainImages[i], m_SwapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, m_LogicalDevice->getLogicalDevice());
 	}
 }
 
 void SwapChain::Cleanup() {
-	for (size_t i = 0; i < swapChainImageViews.size(); i++) {
-		vkDestroyImageView(m_LogicalDevice->getLogicalDevice(), swapChainImageViews[i], nullptr);
+	for (size_t i = 0; i < m_SwapChainImageViews.size(); i++) {
+		vkDestroyImageView(m_LogicalDevice->getLogicalDevice(), m_SwapChainImageViews[i], nullptr);
 	}
 
 	vkDestroySwapchainKHR(m_LogicalDevice->getLogicalDevice(), m_SwapChain, nullptr);
@@ -145,12 +170,17 @@ VkExtent2D SwapChain::getSwapChainExtent()
 
 const std::vector<VkImage>& SwapChain::getSwapChainImages() const
 {
-	return swapChainImages;
+	return m_SwapChainImages;
 }
 
 const std::vector<VkImageView>& SwapChain::getSwapChainImageViews() const
 {
-	return swapChainImageViews;
+	return m_SwapChainImageViews;
+}
+
+const std::vector<VkFramebuffer>& SwapChain::getSwapChainFrameBuffers() const
+{
+	return m_SwapChainFrameBuffers;
 }
 
 VkSwapchainKHR SwapChain::getSwapChain()
