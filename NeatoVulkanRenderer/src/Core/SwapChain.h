@@ -9,17 +9,20 @@ class SwapChain
 {
 public:
 	SwapChain(GLFWwindow* window, LogicalDevice *logicalDevice, PhysicalDevice* physicalDevice, Surface* surface);
-	void createFrameBuffers(RenderPass* renderPass);
+
 	~SwapChain();
 
 	VkFormat getSwapChainImageFormat();
 	VkExtent2D getSwapChainExtent();
+	void createFrameBuffers(RenderPass* renderPass);
 
 	const std::vector<VkImage>& getSwapChainImages() const;
 	const std::vector<VkImageView>& getSwapChainImageViews() const;
 	const std::vector<VkFramebuffer>& getSwapChainFrameBuffers() const;
+	const VkFramebuffer getFrameBufferByIndex(int i) const;
 
 	VkSwapchainKHR getSwapChain();
+
 	void Cleanup();
 private:
 	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
@@ -31,9 +34,6 @@ private:
 	PhysicalDevice *m_PhysicalDevice;
 	Surface* m_Surface;
 	GLFWwindow* m_Window;
-	VkImageView m_ColorImageView;
-	VkImageView m_DepthImageView;
-	VkImageView m_TextureImageView;
 
 	VkFormat m_SwapChainImageFormat;
 	VkSwapchainKHR m_SwapChain;

@@ -12,14 +12,21 @@ public:
 	~CommandBus();
 	void Cleanup();
 
+	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+
+	void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+
+	void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
+
 	void createCommandPool();
 
-	void createCommandBuffers(int numFrameBuffers);
+	void createCommandBuffers();
 	VkCommandBuffer beginSingleTimeCommands();
 	void endSingleTimeCommands(VkCommandBuffer commandBuffer);
 	VkCommandBuffer* getCommandBufferByIndex(int index);
+	std::vector<VkCommandBuffer> getCommandBuffers();
 	int commandBuffersCount();
-	VkCommandPool getPool();
+	VkCommandPool getCommandPool();
 
 private:
 	LogicalDevice* m_LogicalDevice;

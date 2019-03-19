@@ -183,6 +183,11 @@ const std::vector<VkFramebuffer>& SwapChain::getSwapChainFrameBuffers() const
 	return m_SwapChainFrameBuffers;
 }
 
+const VkFramebuffer SwapChain::getFrameBufferByIndex(int i) const
+{
+	return m_SwapChainFrameBuffers[i];
+}
+
 VkSwapchainKHR SwapChain::getSwapChain()
 {
 	return m_SwapChain;
