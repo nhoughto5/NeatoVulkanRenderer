@@ -33,7 +33,6 @@ void Renderer::onWindowResize(GLFWwindow* window, int width, int height) {
 	app->recreateSwapChain();
 }
 
-
 void Renderer::initVulkan() {
 	instance = new Instance();
 	surface = new Surface(instance, window);
@@ -54,13 +53,13 @@ void Renderer::initVulkan() {
 	houseModel->createTextureImage();
 	houseModel->createTextureImageView();
 	houseModel->createTextureSampler();
-	loadModel();
-	createVertexBuffer();
-	createIndexBuffer();
-	createUniformBuffers();
+	houseModel->loadModel();
+	houseModel->createVertexBuffer();
+	houseModel->createIndexBuffer();
+	houseModel->createUniformBuffers();
 	createDescriptorPool();
 	createDescriptorSets();
-	commandBus->createCommandBuffers();
+	commandBus->createCommandBuffers(houseModel);
 	createSemaphores();
 }
 
@@ -125,16 +124,6 @@ void Renderer::createDescriptorPool() {
 
 	if (vkCreateDescriptorPool(logicalDevice->getLogicalDevice(), &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create descriptor pool");
-	}
-}
-
-void Renderer::createUniformBuffers() {
-	VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-	uniformBuffers.resize(swapChain->getSwapChainImages().size());
-	uniformBuffersMemory.resize(swapChain->getSwapChainImages().size());
-
-	for (size_t i = 0; i < swapChain->getSwapChainImages().size(); i++) {
-		createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
 	}
 }
 

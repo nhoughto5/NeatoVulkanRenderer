@@ -33,31 +33,17 @@ private:
 	Model* houseModel;
 
 	VkSemaphore imageAvailableSemaphore, renderFinishedSemaphore;
-	std::vector<VkBuffer> uniformBuffers;
-	std::vector<VkDeviceMemory> uniformBuffersMemory;
 	VkDescriptorPool descriptorPool;
 	std::vector<VkDescriptorSet> descriptorSets;
 
 	void initWindow();
 	static void onWindowResize(GLFWwindow* window, int width, int height);
 	void initVulkan();
-	void createColorResources();
-	void loadModel();
-	bool hasStencilComponent(VkFormat format);
-	void createTextureSampler();
 	void createDescriptorSets();
 	void createDescriptorPool();
-	void createUniformBuffers();
-	void createIndexBuffer();
-	void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-	void createVertexBuffer();
-	void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-	void createSemaphores();
-	void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels);
-	void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
 
 	void recreateSwapChain();
-
+	void createSemaphores();
 	void drawFrame();
 	void mainLoop();
 	void cleanupSwapChain();

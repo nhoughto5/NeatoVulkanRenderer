@@ -18,6 +18,8 @@ public:
 
 	void createIndexBuffer();
 
+	void createUniformBuffers();
+
 	void createVertexBuffer();
 
 	void loadModel();
@@ -32,6 +34,10 @@ public:
 	void createTextureSampler();
 	VkImageView getTextureImageView();
 	VkSampler getTextureSampler();
+	VkBuffer getVertexBuffer();
+	VkBuffer getIndexBuffer();
+	std::vector<uint32_t> getIndices();
+
 private:
 	VkImageView m_ColorImageView;
 	VkImage m_ColorImage;
@@ -44,12 +50,14 @@ private:
 	VkDeviceMemory m_TextureImageMemory;
 	uint32_t mipLevels;
 	VkSampler m_TextureSampler;
-	VkBuffer vertexBuffer;
-	VkDeviceMemory vertexBufferMemory;
-	VkBuffer indexBuffer;
-	VkDeviceMemory indexBufferMemory;
-	std::vector<Vertex> vertices;
-	std::vector<uint32_t> indices;
+	VkBuffer m_VertexBuffer;
+	VkDeviceMemory m_VertexBufferMemory;
+	VkBuffer m_IndexBuffer;
+	VkDeviceMemory m_IndexBufferMemory;
+	std::vector<VkBuffer> m_UniformBuffers;
+	std::vector<VkDeviceMemory> m_UniformBuffersMemory;
+	std::vector<Vertex> m_Vertices;
+	std::vector<uint32_t> m_Indices;
 
 	PhysicalDevice* m_PhysicalDevice;
 	LogicalDevice* m_LogicalDevice;

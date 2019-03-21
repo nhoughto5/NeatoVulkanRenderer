@@ -31,32 +31,42 @@ void Model::Cleanup() {
 	vkDestroyImage(m_LogicalDevice->getLogicalDevice(), m_DepthImage, nullptr);
 	vkFreeMemory(m_LogicalDevice->getLogicalDevice(), m_DepthImageMemory, nullptr);
 	
-	vkDestroyBuffer(m_LogicalDevice->getLogicalDevice(), indexBuffer, nullptr);
-	vkFreeMemory(m_LogicalDevice->getLogicalDevice(), indexBufferMemory, nullptr);
-	vkDestroyBuffer(m_LogicalDevice->getLogicalDevice(), vertexBuffer, nullptr);
-	vkFreeMemory(m_LogicalDevice->getLogicalDevice(), vertexBufferMemory, nullptr);
+	vkDestroyBuffer(m_LogicalDevice->getLogicalDevice(), m_IndexBuffer, nullptr);
+	vkFreeMemory(m_LogicalDevice->getLogicalDevice(), m_IndexBufferMemory, nullptr);
+	vkDestroyBuffer(m_LogicalDevice->getLogicalDevice(), m_VertexBuffer, nullptr);
+	vkFreeMemory(m_LogicalDevice->getLogicalDevice(), m_VertexBufferMemory, nullptr);
 }
 
 void Model::createIndexBuffer() {
-	VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
+	VkDeviceSize bufferSize = sizeof(m_Indices[0]) * m_Indices.size();
 	VkBuffer stagingBuffer;
 	VkDeviceMemory stagingBufferMemory;
 	m_LogicalDevice->createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
 	void* data;
 	vkMapMemory(m_LogicalDevice->getLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
-	memcpy(data, indices.data(), (size_t)bufferSize);
+	memcpy(data, m_Indices.data(), (size_t)bufferSize);
 	vkUnmapMemory(m_LogicalDevice->getLogicalDevice(), stagingBufferMemory);
 
-	m_LogicalDevice->createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
+	m_LogicalDevice->createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_IndexBuffer, m_IndexBufferMemory);
 
-	m_CommandBus->copyBuffer(stagingBuffer, indexBuffer, bufferSize);
+	m_CommandBus->copyBuffer(stagingBuffer, m_IndexBuffer, bufferSize);
 	vkDestroyBuffer(m_LogicalDevice->getLogicalDevice(), stagingBuffer, nullptr);
 	vkFreeMemory(m_LogicalDevice->getLogicalDevice(), stagingBufferMemory, nullptr);
 }
 
+void Model::createUniformBuffers() {
+	VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+	m_UniformBuffers.resize(m_SwapChain->getSwapChainImages().size());
+	m_UniformBuffersMemory.resize(m_SwapChain->getSwapChainImages().size());
+
+	for (size_t i = 0; i < m_SwapChain->getSwapChainImages().size(); i++) {
+		m_LogicalDevice->createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_UniformBuffers[i], m_UniformBuffersMemory[i]);
+	}
+}
+
 void Model::createVertexBuffer() {
-	VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
+	VkDeviceSize bufferSize = sizeof(m_Vertices[0]) * m_Vertices.size();
 
 	VkBuffer stagingBuffer;
 	VkDeviceMemory stagingBufferMemory;
@@ -64,12 +74,12 @@ void Model::createVertexBuffer() {
 
 	void* data;
 	vkMapMemory(m_LogicalDevice->getLogicalDevice(), stagingBufferMemory, 0, bufferSize, 0, &data);
-	memcpy(data, vertices.data(), (size_t)bufferSize);
+	memcpy(data, m_Vertices.data(), (size_t)bufferSize);
 	vkUnmapMemory(m_LogicalDevice->getLogicalDevice(), stagingBufferMemory);
 
-	m_LogicalDevice->createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
+	m_LogicalDevice->createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_VertexBuffer, m_VertexBufferMemory);
 
-	m_CommandBus->copyBuffer(stagingBuffer, vertexBuffer, bufferSize);
+	m_CommandBus->copyBuffer(stagingBuffer, m_VertexBuffer, bufferSize);
 
 	vkDestroyBuffer(m_LogicalDevice->getLogicalDevice(), stagingBuffer, nullptr);
 	vkFreeMemory(m_LogicalDevice->getLogicalDevice(), stagingBufferMemory, nullptr);
@@ -107,11 +117,11 @@ void Model::loadModel() {
 			};
 
 			if (uniqueVertices.count(vertex) == 0) {
-				uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
-				vertices.push_back(vertex);
+				uniqueVertices[vertex] = static_cast<uint32_t>(m_Vertices.size());
+				m_Vertices.push_back(vertex);
 			}
 
-			indices.push_back(uniqueVertices[vertex]);
+			m_Indices.push_back(uniqueVertices[vertex]);
 		}
 	}
 }
@@ -277,6 +287,18 @@ void Model::createTextureSampler() {
 	if (vkCreateSampler(m_LogicalDevice->getLogicalDevice(), &samplerInfo, nullptr, &m_TextureSampler) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create texture sampler!");
 	}
+}
+
+VkBuffer Model::getVertexBuffer() {
+	return m_VertexBuffer;
+}
+
+VkBuffer Model::getIndexBuffer() {
+	return m_IndexBuffer;
+}
+
+std::vector<uint32_t> Model::getIndices() {
+	return m_Indices;
 }
 
 VkImageView Model::getTextureImageView()
