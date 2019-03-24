@@ -3,18 +3,18 @@
 #include "LogicalDevice.h"
 #include "PhysicalDevice.h"
 #include "Surface.h"
-#include "RenderPass.h"
 
 class SwapChain
 {
 public:
 	SwapChain(GLFWwindow* window, LogicalDevice *logicalDevice, PhysicalDevice* physicalDevice, Surface* surface);
 
+	void createFrameBuffers(VkRenderPass renderPass, VkImageView colorImageView, VkImageView depthImageView);
+
 	~SwapChain();
 
 	VkFormat getSwapChainImageFormat();
 	VkExtent2D getSwapChainExtent();
-	void createFrameBuffers(RenderPass* renderPass);
 
 	const std::vector<VkImage>& getSwapChainImages() const;
 	const std::vector<VkImageView>& getSwapChainImageViews() const;

@@ -301,9 +301,34 @@ std::vector<uint32_t> Model::getIndices() {
 	return m_Indices;
 }
 
+std::vector<VkBuffer> Model::getUniformBuffers()
+{
+	return m_UniformBuffers;
+}
+
+std::vector<VkDeviceMemory> Model::getUniformBuffersMemory()
+{
+	return m_UniformBuffersMemory;
+}
+
+int Model::getNumIndicies()
+{
+	return m_Indices.size();
+}
+
 VkImageView Model::getTextureImageView()
 {
 	return m_TextureImageView;
+}
+
+VkImageView Model::getColorImageView()
+{
+	return m_ColorImageView;
+}
+
+VkImageView Model::getDepthImageView()
+{
+	return m_DepthImageView;
 }
 
 VkSampler Model::getTextureSampler()

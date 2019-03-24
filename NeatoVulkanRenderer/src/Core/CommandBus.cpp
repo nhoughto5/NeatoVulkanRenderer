@@ -136,7 +136,7 @@ void CommandBus::createCommandPool() {
 	}
 }
 
-void CommandBus::createCommandBuffers() {
+void CommandBus::createCommandBuffers(VkBuffer vertexBuffer, VkBuffer indexBuffer, int numIndices, std::vector<VkDescriptorSet> descriptorSets) {
 	auto swapChainFrameBuffers = m_SwapChain->getSwapChainFrameBuffers();
 	m_CommandBuffers.resize(swapChainFrameBuffers.size());
 
@@ -183,7 +183,7 @@ void CommandBus::createCommandBuffers() {
 
 		vkCmdBindIndexBuffer(m_CommandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 		vkCmdBindDescriptorSets(m_CommandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline->getGraphicsPipelineLayout(), 0, 1, &descriptorSets[i], 0, nullptr);
-		vkCmdDrawIndexed(m_CommandBuffers[i], static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+		vkCmdDrawIndexed(m_CommandBuffers[i], static_cast<uint32_t>(numIndices), 1, 0, 0, 0);
 		vkCmdEndRenderPass(m_CommandBuffers[i]);
 
 		if (vkEndCommandBuffer(m_CommandBuffers[i]) != VK_SUCCESS) {

@@ -20,7 +20,8 @@ public:
 
 	void createCommandPool();
 
-	void createCommandBuffers();
+	void createCommandBuffers(VkBuffer vertexBuffer, VkBuffer indexBuffer, int numIndices, std::vector<VkDescriptorSet> descriptorSets);
+
 	VkCommandBuffer beginSingleTimeCommands();
 	void endSingleTimeCommands(VkCommandBuffer commandBuffer);
 	VkCommandBuffer* getCommandBufferByIndex(int index);

@@ -63,19 +63,19 @@ SwapChain::SwapChain(GLFWwindow* window, LogicalDevice *logicalDevice, PhysicalD
 	createImageViews();
 }
 
-void SwapChain::createFrameBuffers(RenderPass* renderPass) {
+void SwapChain::createFrameBuffers(VkRenderPass renderPass, VkImageView colorImageView, VkImageView depthImageView) {
 	m_SwapChainFrameBuffers.resize(m_SwapChainImageViews.size());
 
 	for (size_t i = 0; i < m_SwapChainImageViews.size(); ++i) {
 		std::array<VkImageView, 3> attachments = {
-			m_ColorImageView,
-			m_DepthImageView,
+			colorImageView,
+			depthImageView,
 			m_SwapChainImageViews[i]
 		};
 
 		VkFramebufferCreateInfo frameBufferInfo = {};
 		frameBufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		frameBufferInfo.renderPass = renderPass->getRenderPass();
+		frameBufferInfo.renderPass = renderPass;
 		frameBufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
 		frameBufferInfo.pAttachments = attachments.data();
 		frameBufferInfo.width = m_SwapChainExtent.width;

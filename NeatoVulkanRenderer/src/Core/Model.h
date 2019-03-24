@@ -33,10 +33,15 @@ public:
 
 	void createTextureSampler();
 	VkImageView getTextureImageView();
+	VkImageView getColorImageView();
+	VkImageView getDepthImageView();
 	VkSampler getTextureSampler();
 	VkBuffer getVertexBuffer();
 	VkBuffer getIndexBuffer();
 	std::vector<uint32_t> getIndices();
+	std::vector<VkBuffer> getUniformBuffers();
+	std::vector<VkDeviceMemory> getUniformBuffersMemory();
+	int getNumIndicies();
 
 private:
 	VkImageView m_ColorImageView;
