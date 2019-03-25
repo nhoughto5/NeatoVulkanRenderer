@@ -17,6 +17,10 @@ Renderer::~Renderer()
 	delete logicalDevice;
 	delete physicalDevice;
 	delete swapChain;
+	delete renderPass;
+	delete graphicsPipeline;
+	delete commandBus;
+	delete houseModel;
 }
 
 void Renderer::initWindow() {
@@ -26,6 +30,7 @@ void Renderer::initWindow() {
 	window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 	glfwSetWindowUserPointer(window, this);
 	glfwSetWindowSizeCallback(window, Renderer::onWindowResize);
+	debugger = new DebugLayer();
 }
 
 void Renderer::onWindowResize(GLFWwindow* window, int width, int height) {
@@ -35,8 +40,9 @@ void Renderer::onWindowResize(GLFWwindow* window, int width, int height) {
 
 void Renderer::initVulkan() {
 	instance = new Instance();
+	debugger->setupDebugCallback(instance->getInstance());
+
 	surface = new Surface(instance, window);
-	debugger.setupDebugCallback(instance->getInstance());
 	surface = new Surface(instance, window);
 	physicalDevice = new PhysicalDevice(instance, surface);
 	logicalDevice = new LogicalDevice(physicalDevice);
@@ -57,7 +63,7 @@ void Renderer::initVulkan() {
 	houseModel->createVertexBuffer();
 	houseModel->createIndexBuffer();
 	houseModel->createUniformBuffers();
-	createDescriptorPool();
+	descriptorPool = graphicsPipeline->createDescriptorPool();
 	createDescriptorSets();
 	commandBus->createCommandBuffers(
 		houseModel->getVertexBuffer(),
@@ -116,24 +122,6 @@ void Renderer::createDescriptorSets() {
 	}
 }
 
-void Renderer::createDescriptorPool() {
-	std::array<VkDescriptorPoolSize, 2> poolSizes = {};
-	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSizes[0].descriptorCount = static_cast<uint32_t>(swapChain->getSwapChainImages().size());
-	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[1].descriptorCount = static_cast<uint32_t>(swapChain->getSwapChainImages().size());
-
-	VkDescriptorPoolCreateInfo poolInfo = {};
-	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-	poolInfo.pPoolSizes = poolSizes.data();
-	poolInfo.maxSets = static_cast<uint32_t>(swapChain->getSwapChainImages().size());
-
-	if (vkCreateDescriptorPool(logicalDevice->getLogicalDevice(), &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create descriptor pool");
-	}
-}
-
 void Renderer::createSemaphores() {
 	VkSemaphoreCreateInfo semaphoreInfo = {};
 	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -173,12 +161,12 @@ void Renderer::drawFrame() {
 	VkResult result = vkAcquireNextImageKHR(logicalDevice->getLogicalDevice(), swapChain->getSwapChain(), std::numeric_limits<uint64_t>::max(), imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 	if (result == VK_ERROR_OUT_OF_DATE_KHR) {
 		recreateSwapChain();
-	}
+	} 
 	else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
 		std::runtime_error("Failed to acquire swap chain image");
 	}
 
-	updateUniformBuffer(imageIndex);
+	update(imageIndex);
 
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -248,7 +236,6 @@ void Renderer::cleanup() {
 
 	houseModel->Cleanup();
 	vkDestroyDescriptorSetLayout(logicalDevice->getLogicalDevice(), graphicsPipeline->getDescriptorSetLayout(), nullptr);
-	vkDestroyDescriptorPool(logicalDevice->getLogicalDevice(), descriptorPool, nullptr);
 	
 	auto uniformBuffers = houseModel->getUniformBuffers();
 	auto uniformBuffersMemory = houseModel->getUniformBuffersMemory();
@@ -262,10 +249,10 @@ void Renderer::cleanup() {
 	vkDestroySemaphore(logicalDevice->getLogicalDevice(), renderFinishedSemaphore, nullptr);
 	vkDestroySemaphore(logicalDevice->getLogicalDevice(), imageAvailableSemaphore, nullptr);
 
-	vkDestroyCommandPool(logicalDevice->getLogicalDevice(), commandBus->getCommandPool(), nullptr);
+	commandBus->Cleanup();
 
-	vkDestroyDevice(logicalDevice->getLogicalDevice(), nullptr);
-	debugger.DestroyDebugReportCallbackEXT(instance->getInstance(), nullptr);
+	logicalDevice->Cleanup();
+	debugger->DestroyDebugReportCallbackEXT(instance->getInstance(), nullptr);
 
 	surface->Cleanup();
 	instance->Cleanup();
@@ -275,7 +262,7 @@ void Renderer::cleanup() {
 	glfwTerminate();
 }
 
-void Renderer::updateUniformBuffer(uint32_t currentImage) {
+void Renderer::update(uint32_t currentImage) {
 	static auto startTime = std::chrono::high_resolution_clock::now();
 	auto currentTime = std::chrono::high_resolution_clock::now();
 	float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();

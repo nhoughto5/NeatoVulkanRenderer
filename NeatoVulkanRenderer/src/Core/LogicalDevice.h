@@ -7,6 +7,8 @@ public:
 	LogicalDevice(PhysicalDevice* physicalDevice);
 	~LogicalDevice();
 
+	void Cleanup();
+
 	void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer & buffer, VkDeviceMemory & bufferMemory);
 
 	VkDevice getLogicalDevice();

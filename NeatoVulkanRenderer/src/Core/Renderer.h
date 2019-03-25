@@ -20,7 +20,7 @@ public:
 	~Renderer();
 
 private:
-	DebugLayer debugger;
+	DebugLayer* debugger;
 	Instance *instance;
 	GLFWwindow * window;
 	Surface* surface;
@@ -40,7 +40,6 @@ private:
 	static void onWindowResize(GLFWwindow* window, int width, int height);
 	void initVulkan();
 	void createDescriptorSets();
-	void createDescriptorPool();
 
 	void recreateSwapChain();
 	void createSemaphores();
@@ -48,5 +47,5 @@ private:
 	void mainLoop();
 	void cleanupSwapChain();
 	void cleanup();
-	void updateUniformBuffer(uint32_t currentImage);
+	void update(uint32_t currentImage);
 };
