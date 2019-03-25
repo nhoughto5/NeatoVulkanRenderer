@@ -1,10 +1,11 @@
 #include "nvrpch.h"
 #include "LogicalDevice.h"
 
-LogicalDevice::LogicalDevice(PhysicalDevice* physicalDevice)
+LogicalDevice::LogicalDevice(PhysicalDevice* physicalDevice) :
+	m_PhysicalDevice(physicalDevice)
 {
 	// Specifying the queues to be created
-	QueueFamilyIndices indices = physicalDevice->findQueueFamilies(physicalDevice->getPhysicalDevice());
+	QueueFamilyIndices indices = m_PhysicalDevice->findQueueFamilies(m_PhysicalDevice->getPhysicalDevice());
 
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 	std::set<int> uniqueQueueFamilies = { indices.graphicsFamily, indices.presentFamily };
@@ -43,7 +44,7 @@ LogicalDevice::LogicalDevice(PhysicalDevice* physicalDevice)
 		createInfo.enabledLayerCount = 0;
 	}
 
-	if (vkCreateDevice(physicalDevice->getPhysicalDevice(), &createInfo, nullptr, &m_LogicalDevice) != VK_SUCCESS) {
+	if (vkCreateDevice(m_PhysicalDevice->getPhysicalDevice(), &createInfo, nullptr, &m_LogicalDevice) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create logical device!");
 	}
 
