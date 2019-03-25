@@ -57,6 +57,10 @@ LogicalDevice::~LogicalDevice()
 {
 }
 
+void LogicalDevice::Cleanup() {
+	vkDestroyDevice(m_LogicalDevice, nullptr);
+}
+
 void LogicalDevice::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
 	VkBufferCreateInfo bufferInfo = {};
 	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;

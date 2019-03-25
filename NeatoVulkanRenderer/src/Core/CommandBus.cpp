@@ -17,7 +17,7 @@ CommandBus::~CommandBus()
 }
 
 void CommandBus::Cleanup() {
-	
+	vkDestroyCommandPool(m_LogicalDevice->getLogicalDevice(), m_CommandPool, nullptr);
 }
 
 

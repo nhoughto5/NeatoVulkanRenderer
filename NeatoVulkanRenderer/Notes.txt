@@ -1,0 +1,19 @@
+Descriptors:
+	"An opaque representation that stores 'one bind'".
+	Could be an image, sampler, uniform... etc.
+
+	Think of Descriptors as items sent to the army oversees.
+	A set is a crate with multiple items in it
+	A descriptor set layout is the manifest of cargo.
+	The army is the graphics pipeline you've set up.
+
+Descriptor Set:
+	Descriptors aren't bound individually, but in a block.
+
+Descriptor Set Layout
+	"The easiest way to think about this is consider VkDescriptorSetLayout as 
+	being like a C struct type - it describes some members, each member having 
+	an opaque type (constant buffer, load/store image, etc). 
+	The VkDescriptorSet is a specific instance of that type - and each 
+	member in the VkDescriptorSet is a binding you can 
+	update with whichever resource you want it to contain."
