@@ -1,10 +1,11 @@
 #include "nvrpch.h"
 #include "LogicalDevice.h"
 
-LogicalDevice::LogicalDevice(PhysicalDevice* physicalDevice)
+LogicalDevice::LogicalDevice(PhysicalDevice* physicalDevice) :
+	m_PhysicalDevice(physicalDevice)
 {
 	// Specifying the queues to be created
-	QueueFamilyIndices indices = physicalDevice->findQueueFamilies(physicalDevice->getPhysicalDevice());
+	QueueFamilyIndices indices = m_PhysicalDevice->findQueueFamilies(m_PhysicalDevice->getPhysicalDevice());
 
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 	std::set<int> uniqueQueueFamilies = { indices.graphicsFamily, indices.presentFamily };
@@ -43,7 +44,7 @@ LogicalDevice::LogicalDevice(PhysicalDevice* physicalDevice)
 		createInfo.enabledLayerCount = 0;
 	}
 
-	if (vkCreateDevice(physicalDevice->getPhysicalDevice(), &createInfo, nullptr, &m_LogicalDevice) != VK_SUCCESS) {
+	if (vkCreateDevice(m_PhysicalDevice->getPhysicalDevice(), &createInfo, nullptr, &m_LogicalDevice) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create logical device!");
 	}
 
@@ -54,6 +55,32 @@ LogicalDevice::LogicalDevice(PhysicalDevice* physicalDevice)
 
 LogicalDevice::~LogicalDevice()
 {
+}
+
+void LogicalDevice::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
+	VkBufferCreateInfo bufferInfo = {};
+	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferInfo.size = size;
+	bufferInfo.usage = usage;
+	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	if (vkCreateBuffer(m_LogicalDevice, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
+		throw std::runtime_error("failed to create buffer!");
+	}
+
+	VkMemoryRequirements memRequirements;
+	vkGetBufferMemoryRequirements(m_LogicalDevice, buffer, &memRequirements);
+
+	VkMemoryAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocInfo.allocationSize = memRequirements.size;
+	allocInfo.memoryTypeIndex = findMemoryType(m_PhysicalDevice->getPhysicalDevice(), memRequirements.memoryTypeBits, properties);
+
+	if (vkAllocateMemory(m_LogicalDevice, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
+		throw std::runtime_error("failed to allocate buffer memory!");
+	}
+
+	vkBindBufferMemory(m_LogicalDevice, buffer, bufferMemory, 0);
 }
 
 VkDevice LogicalDevice::getLogicalDevice()
