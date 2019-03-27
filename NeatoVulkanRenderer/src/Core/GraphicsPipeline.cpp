@@ -182,6 +182,8 @@ void GraphicsPipeline::Cleanup() {
 	for (VkDescriptorPool vkP : m_AllocatedDescriptorPools) {
 		vkDestroyDescriptorPool(m_LogicalDevice->getLogicalDevice(), vkP, nullptr);
 	}
+
+	vkDestroyDescriptorSetLayout(m_LogicalDevice->getLogicalDevice(), m_DescriptorSetLayout, nullptr);
 }
 
 VkPipeline GraphicsPipeline::getGraphicsPipeline()

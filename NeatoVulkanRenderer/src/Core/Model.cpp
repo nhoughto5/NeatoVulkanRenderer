@@ -35,6 +35,11 @@ void Model::Cleanup() {
 	vkFreeMemory(m_LogicalDevice->getLogicalDevice(), m_IndexBufferMemory, nullptr);
 	vkDestroyBuffer(m_LogicalDevice->getLogicalDevice(), m_VertexBuffer, nullptr);
 	vkFreeMemory(m_LogicalDevice->getLogicalDevice(), m_VertexBufferMemory, nullptr);
+
+	for (size_t i = 0; i < m_SwapChain->getSwapChainImages().size(); i++) {
+		vkDestroyBuffer(m_LogicalDevice->getLogicalDevice(), m_UniformBuffers[i], nullptr);
+		vkFreeMemory(m_LogicalDevice->getLogicalDevice(), m_UniformBuffersMemory[i], nullptr);
+	}
 }
 
 void Model::createIndexBuffer() {

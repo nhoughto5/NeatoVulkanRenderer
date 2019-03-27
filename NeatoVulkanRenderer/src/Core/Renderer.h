@@ -10,6 +10,7 @@
 #include "GraphicsPipeline.h"
 #include "CommandBus.h"
 #include "Model.h"
+#include "../Camera.h"
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
@@ -31,6 +32,7 @@ private:
 	GraphicsPipeline* graphicsPipeline;
 	CommandBus* commandBus;
 	Model* houseModel;
+	Camera* camera;
 
 	VkSemaphore imageAvailableSemaphore, renderFinishedSemaphore;
 	VkDescriptorPool descriptorPool;

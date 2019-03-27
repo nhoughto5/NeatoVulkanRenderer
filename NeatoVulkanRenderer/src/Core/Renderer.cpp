@@ -5,6 +5,7 @@ void Renderer::run()
 {
 	initWindow();
 	initVulkan();
+	camera = new Camera(swapChain);
 	mainLoop();
 	cleanup();
 }
@@ -132,30 +133,6 @@ void Renderer::createSemaphores() {
 	}
 }
 
-
-void Renderer::recreateSwapChain() {
-	int width, height;
-	glfwGetWindowSize(window, &width, &height);
-	if (width == 0 || height == 0) return;
-
-	vkDeviceWaitIdle(logicalDevice->getLogicalDevice());
-	cleanupSwapChain();
-	
-	swapChain = new SwapChain(window, logicalDevice, physicalDevice, surface);
-	renderPass = new RenderPass(physicalDevice, logicalDevice, swapChain);
-	graphicsPipeline = new GraphicsPipeline(physicalDevice, logicalDevice, swapChain, renderPass);
-
-	houseModel->createColorResources();
-	houseModel->createDepthResources();
-	swapChain->createFrameBuffers(renderPass->getRenderPass(), houseModel->getColorImageView(), houseModel->getDepthImageView());
-	commandBus->createCommandBuffers(
-		houseModel->getVertexBuffer(),
-		houseModel->getIndexBuffer(),
-		houseModel->getNumIndicies(),
-		descriptorSets
-	);
-}
-
 void Renderer::drawFrame() {
 	uint32_t imageIndex;
 	VkResult result = vkAcquireNextImageKHR(logicalDevice->getLogicalDevice(), swapChain->getSwapChain(), std::numeric_limits<uint64_t>::max(), imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
@@ -219,6 +196,29 @@ void Renderer::mainLoop() {
 	vkDeviceWaitIdle(logicalDevice->getLogicalDevice());
 }
 
+void Renderer::recreateSwapChain() {
+	int width, height;
+	glfwGetWindowSize(window, &width, &height);
+	if (width == 0 || height == 0) return;
+
+	vkDeviceWaitIdle(logicalDevice->getLogicalDevice());
+	cleanupSwapChain();
+
+	swapChain = new SwapChain(window, logicalDevice, physicalDevice, surface);
+	renderPass = new RenderPass(physicalDevice, logicalDevice, swapChain);
+	graphicsPipeline = new GraphicsPipeline(physicalDevice, logicalDevice, swapChain, renderPass);
+
+	houseModel->createColorResources();
+	houseModel->createDepthResources();
+	swapChain->createFrameBuffers(renderPass->getRenderPass(), houseModel->getColorImageView(), houseModel->getDepthImageView());
+	commandBus->createCommandBuffers(
+		houseModel->getVertexBuffer(),
+		houseModel->getIndexBuffer(),
+		houseModel->getNumIndicies(),
+		descriptorSets
+	);
+}
+
 void Renderer::cleanupSwapChain() {
 
 	for (size_t i = 0; i < swapChain->getSwapChainFrameBuffers().size(); i++) {
@@ -235,17 +235,7 @@ void Renderer::cleanup() {
 	cleanupSwapChain();
 
 	houseModel->Cleanup();
-	vkDestroyDescriptorSetLayout(logicalDevice->getLogicalDevice(), graphicsPipeline->getDescriptorSetLayout(), nullptr);
-	
-	auto uniformBuffers = houseModel->getUniformBuffers();
-	auto uniformBuffersMemory = houseModel->getUniformBuffersMemory();
 
-	for (size_t i = 0; i < swapChain->getSwapChainImages().size(); i++) {
-		vkDestroyBuffer(logicalDevice->getLogicalDevice(), uniformBuffers[i], nullptr);
-		vkFreeMemory(logicalDevice->getLogicalDevice(), uniformBuffersMemory[i], nullptr);
-	}
-
-	vkDestroyDescriptorSetLayout(logicalDevice->getLogicalDevice(), graphicsPipeline->getDescriptorSetLayout(), nullptr);
 	vkDestroySemaphore(logicalDevice->getLogicalDevice(), renderFinishedSemaphore, nullptr);
 	vkDestroySemaphore(logicalDevice->getLogicalDevice(), imageAvailableSemaphore, nullptr);
 
@@ -263,14 +253,11 @@ void Renderer::cleanup() {
 }
 
 void Renderer::update(uint32_t currentImage) {
-	static auto startTime = std::chrono::high_resolution_clock::now();
-	auto currentTime = std::chrono::high_resolution_clock::now();
-	float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-
 	UniformBufferObject ubo = {};
-	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.proj = glm::perspective(glm::radians(45.0f), swapChain->getSwapChainExtent().width / (float)swapChain->getSwapChainExtent().height, 0.1f, 10.0f);
+	camera->update();
+	ubo.model = camera->getRotate();
+	ubo.view = camera->getLookAt();
+	ubo.proj = camera->getPerspective();
 	ubo.proj[1][1] *= -1;
 
 	void* data;
