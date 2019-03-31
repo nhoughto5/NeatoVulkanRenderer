@@ -10,10 +10,8 @@
 #include "GraphicsPipeline.h"
 #include "CommandBus.h"
 #include "Model.h"
-#include "../Camera.h"
-
-const int WIDTH = 800;
-const int HEIGHT = 600;
+#include "../Util/Camera.h"
+#include "Util/Window.h"
 
 class Renderer {
 public:
@@ -21,9 +19,9 @@ public:
 	~Renderer();
 
 private:
+	Window* window;
 	DebugLayer* debugger;
 	Instance *instance;
-	GLFWwindow * window;
 	Surface* surface;
 	PhysicalDevice* physicalDevice;
 	LogicalDevice* logicalDevice;
@@ -38,7 +36,6 @@ private:
 	VkDescriptorPool descriptorPool;
 	std::vector<VkDescriptorSet> descriptorSets;
 
-	void initWindow();
 	static void onWindowResize(GLFWwindow* window, int width, int height);
 	void initVulkan();
 	void createDescriptorSets();

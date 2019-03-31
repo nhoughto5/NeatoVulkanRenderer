@@ -3,15 +3,18 @@
 
 void Renderer::run()
 {
-	initWindow();
+	window = new Window();
+	glfwSetWindowSizeCallback(window->getWindow(), Renderer::onWindowResize);
+	debugger = new DebugLayer();
 	initVulkan();
-	camera = new Camera(swapChain);
+	camera = new Camera(window->getWindow(), swapChain);
 	mainLoop();
 	cleanup();
 }
 
 Renderer::~Renderer()
 {
+	delete window;
 	delete instance;
 	delete surface;
 	delete renderPass;
@@ -24,16 +27,6 @@ Renderer::~Renderer()
 	delete houseModel;
 }
 
-void Renderer::initWindow() {
-	glfwInit();
-	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-	window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
-	glfwSetWindowUserPointer(window, this);
-	glfwSetWindowSizeCallback(window, Renderer::onWindowResize);
-	debugger = new DebugLayer();
-}
-
 void Renderer::onWindowResize(GLFWwindow* window, int width, int height) {
 	Renderer* app = reinterpret_cast<Renderer*>(glfwGetWindowUserPointer(window));
 	app->recreateSwapChain();
@@ -43,11 +36,10 @@ void Renderer::initVulkan() {
 	instance = new Instance();
 	debugger->setupDebugCallback(instance->getInstance());
 
-	surface = new Surface(instance, window);
-	surface = new Surface(instance, window);
+	surface = new Surface(instance, window->getWindow());
 	physicalDevice = new PhysicalDevice(instance, surface);
 	logicalDevice = new LogicalDevice(physicalDevice);
-	swapChain = new SwapChain(window, logicalDevice, physicalDevice, surface);
+	swapChain = new SwapChain(window->getWindow(), logicalDevice, physicalDevice, surface);
 	renderPass = new RenderPass(physicalDevice, logicalDevice, swapChain);
 	graphicsPipeline = new GraphicsPipeline(physicalDevice, logicalDevice, swapChain, renderPass);
 	commandBus = new CommandBus(physicalDevice, logicalDevice, swapChain, renderPass, graphicsPipeline);
@@ -184,12 +176,13 @@ void Renderer::drawFrame() {
 	else if (result != VK_SUCCESS) {
 		throw std::runtime_error("failed to present swap chain image!");
 	}
+
 	//Sync with GPU to prevent memory leak in validation layers
 	vkQueueWaitIdle(logicalDevice->getPresentQueue());
 }
 
 void Renderer::mainLoop() {
-	while (!glfwWindowShouldClose(window)) {
+	while (!glfwWindowShouldClose(window->getWindow())) {
 		glfwPollEvents();
 		drawFrame();
 	}
@@ -198,13 +191,13 @@ void Renderer::mainLoop() {
 
 void Renderer::recreateSwapChain() {
 	int width, height;
-	glfwGetWindowSize(window, &width, &height);
+	glfwGetWindowSize(window->getWindow(), &width, &height);
 	if (width == 0 || height == 0) return;
 
 	vkDeviceWaitIdle(logicalDevice->getLogicalDevice());
 	cleanupSwapChain();
 
-	swapChain = new SwapChain(window, logicalDevice, physicalDevice, surface);
+	swapChain = new SwapChain(window->getWindow(), logicalDevice, physicalDevice, surface);
 	renderPass = new RenderPass(physicalDevice, logicalDevice, swapChain);
 	graphicsPipeline = new GraphicsPipeline(physicalDevice, logicalDevice, swapChain, renderPass);
 
@@ -220,7 +213,6 @@ void Renderer::recreateSwapChain() {
 }
 
 void Renderer::cleanupSwapChain() {
-
 	for (size_t i = 0; i < swapChain->getSwapChainFrameBuffers().size(); i++) {
 		vkDestroyFramebuffer(logicalDevice->getLogicalDevice(), swapChain->getFrameBufferByIndex(i), nullptr);
 	}
@@ -247,7 +239,7 @@ void Renderer::cleanup() {
 	surface->Cleanup();
 	instance->Cleanup();
 
-	glfwDestroyWindow(window);
+	glfwDestroyWindow(window->getWindow());
 
 	glfwTerminate();
 }

@@ -24,5 +24,5 @@
 
 #include <chrono>
 #include <fstream>
-#include "Vertex.h"
-#include "Helpers.h"
+#include "Util/Vertex.h"
+#include "Util/Helpers.h"

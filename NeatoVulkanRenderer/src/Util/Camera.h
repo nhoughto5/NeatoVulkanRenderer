@@ -5,8 +5,10 @@
 class Camera
 {
 public:
-	Camera(SwapChain* swapChain);
+	Camera(GLFWwindow* window, SwapChain* swapChain);
 	~Camera();
+
+	static void registerKeyInput(GLFWwindow* window, int key, int scancode, int action, int mods);
 	void update();
 
 	glm::mat4 getPerspective();
@@ -14,7 +16,9 @@ public:
 	glm::mat4 getRotate();
 
 private:
+	GLFWwindow* m_Window;
 	SwapChain* m_SwapChain;
 	float m_DeltaTime{ 0.0f };
+	static float angle;
 };
 
