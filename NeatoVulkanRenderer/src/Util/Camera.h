@@ -8,6 +8,8 @@ public:
 	Camera(GLFWwindow* window, SwapChain* swapChain);
 	~Camera();
 
+	void upFactor();
+
 	static void registerKeyInput(GLFWwindow* window, int key, int scancode, int action, int mods);
 	void update();
 
@@ -19,6 +21,6 @@ private:
 	GLFWwindow* m_Window;
 	SwapChain* m_SwapChain;
 	float m_DeltaTime{ 0.0f };
-	static float angle;
+	float factor{ 1.0f };
 };
 

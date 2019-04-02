@@ -5,12 +5,14 @@ Camera::Camera(GLFWwindow* window, SwapChain* swapChain) :
 	m_SwapChain(swapChain),
 	m_Window(window)
 {
-	//glfwSetKeyCallback(m_Window, registerKeyInput);
-	//Camera::angle = 0.0f;
 }
 
 Camera::~Camera()
 {
+}
+
+void Camera::upFactor() {
+	factor += 0.1f;
 }
 
 glm::mat4 Camera::getPerspective() {
@@ -23,7 +25,7 @@ glm::mat4 Camera::getLookAt() {
 }
 
 glm::mat4 Camera::getRotate() {
-	return glm::rotate(glm::mat4(1.0f), glm::radians(45.0f * m_DeltaTime), glm::vec3(0.0f, 0.0f, 1.0f));
+	return glm::rotate(glm::mat4(1.0f), glm::radians(45.0f * m_DeltaTime * factor), glm::vec3(0.0f, 0.0f, 1.0f));
 }
 
 void Camera::registerKeyInput(GLFWwindow* window, int key, int scancode, int action, int mods)

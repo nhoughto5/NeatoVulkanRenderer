@@ -1,9 +1,12 @@
 #include "nvrpch.h"
 #include "Renderer.h"
 
+#define BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
+
 void Renderer::run()
 {
 	window = new Window();
+	window->SetEventCallback(BIND_EVENT_FN(Renderer::onEvent));
 	glfwSetWindowSizeCallback(window->getWindow(), Renderer::onWindowResize);
 	debugger = new DebugLayer();
 	initVulkan();
@@ -25,6 +28,12 @@ Renderer::~Renderer()
 	delete graphicsPipeline;
 	delete commandBus;
 	delete houseModel;
+}
+
+void Renderer::onEvent(Event & e)
+{
+	std::cout << "On Event\n";
+	camera->upFactor();
 }
 
 void Renderer::onWindowResize(GLFWwindow* window, int width, int height) {
@@ -184,6 +193,7 @@ void Renderer::drawFrame() {
 void Renderer::mainLoop() {
 	while (!glfwWindowShouldClose(window->getWindow())) {
 		glfwPollEvents();
+		glfwSwapBuffers(window->getWindow());
 		drawFrame();
 	}
 	vkDeviceWaitIdle(logicalDevice->getLogicalDevice());

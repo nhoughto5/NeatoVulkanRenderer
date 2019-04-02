@@ -10,7 +10,7 @@
 #include "GraphicsPipeline.h"
 #include "CommandBus.h"
 #include "Model.h"
-#include "../Util/Camera.h"
+#include "Util/Camera.h"
 #include "Util/Window.h"
 
 class Renderer {
@@ -32,6 +32,7 @@ private:
 	Model* houseModel;
 	Camera* camera;
 
+	void onEvent(Event& e);
 	VkSemaphore imageAvailableSemaphore, renderFinishedSemaphore;
 	VkDescriptorPool descriptorPool;
 	std::vector<VkDescriptorSet> descriptorSets;

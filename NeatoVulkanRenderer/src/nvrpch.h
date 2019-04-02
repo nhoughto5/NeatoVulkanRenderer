@@ -16,6 +16,7 @@
 #include <vector>
 #include <algorithm>
 #include <cstring>
+#include <sstream>
 #include <set>
 #include <array>
 #include <glm/glm.hpp>
