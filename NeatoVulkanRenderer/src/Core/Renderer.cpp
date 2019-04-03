@@ -32,8 +32,7 @@ Renderer::~Renderer()
 
 void Renderer::onEvent(Event & e)
 {
-	std::cout << "On Event\n";
-	camera->upFactor();
+	camera->onEvent(e);
 }
 
 void Renderer::onWindowResize(GLFWwindow* window, int width, int height) {
