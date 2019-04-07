@@ -29,35 +29,49 @@ glm::mat4 Camera::getPerspective() {
 }
 
 glm::mat4 Camera::getLookAt() {
-	return glm::lookAt(position, lookAt, up);
+	return glm::lookAt(m_Position, m_LookAt + m_Front, m_Up);
 }
 
 glm::mat4 Camera::getRotate() {
-	return glm::rotate(glm::mat4(1.0f), glm::radians(rot), up);
+	return glm::rotate(glm::mat4(1.0f), glm::radians(rot), m_Up);
 }
 
 glm::vec3 Camera::lookAtDirection()
 {
-	return glm::normalize(position - lookAt);
+	return glm::normalize(m_Position - m_LookAt);
 }
 
 glm::vec3 Camera::getRight()
 {
-	return glm::normalize(glm::cross(up, lookAtDirection()));
+	return glm::normalize(glm::cross(m_Up, lookAtDirection()));
 }
 
 void Camera::keyboardEvent(KeyEvent & e)
 {
 	std::cout << "Keyboard Event: " << e.ToString() << "\n";
 	switch (e.GetKeyCode()) {
-		case GLFW_KEY_S:
-			position.y += 1;
-			break;
 		case GLFW_KEY_W:
-			position.y -= 1;
+			m_Position += moveSpeed * m_Front;
+			break;
+		case GLFW_KEY_S:
+			m_Position -= moveSpeed * m_Front;
+			break;
+		case GLFW_KEY_A:
+			m_Position -= glm::normalize(glm::cross(m_Front, m_Up)) * moveSpeed;
+			break;
+		case GLFW_KEY_D:
+			m_Position += glm::normalize(glm::cross(m_Front, m_Up)) * moveSpeed;
+			break;
+		case GLFW_KEY_E:
+			rot += 0.5f;
+			break;
+		case GLFW_KEY_Q:
+			rot -= 0.5f;
+			break;
+		default: 
 			break;
 	}
-	std::cout << "Position: " << position.y << "\n";
+	std::cout << "Position: " << m_Position.x << " " << m_Position.y << " " << m_Position.z << "\n";
 }
 
 void Camera::mouseEvent(Event & e)
