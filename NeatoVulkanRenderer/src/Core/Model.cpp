@@ -15,6 +15,10 @@ Model::~Model()
 {
 }
 
+glm::mat4 Model::getModelMatrix() {
+	return glm::mat4(1.0f);
+}
+
 void Model::Cleanup() {
 	vkDestroySampler(m_LogicalDevice->getLogicalDevice(), m_TextureSampler, nullptr);
 	vkDestroyImageView(m_LogicalDevice->getLogicalDevice(), m_TextureImageView, nullptr);

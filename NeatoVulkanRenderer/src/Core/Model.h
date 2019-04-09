@@ -14,6 +14,8 @@ public:
 	Model(PhysicalDevice* physicalDevice, LogicalDevice* logicalDevice, SwapChain* swapChain, CommandBus* commandBus);
 	~Model();
 
+	glm::mat4 getModelMatrix();
+
 	void Cleanup();
 
 	void createIndexBuffer();

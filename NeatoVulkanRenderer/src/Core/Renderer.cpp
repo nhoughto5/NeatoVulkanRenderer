@@ -256,9 +256,9 @@ void Renderer::cleanup() {
 void Renderer::update(uint32_t currentImage) {
 	UniformBufferObject ubo = {};
 	camera->update();
-	ubo.model = camera->getRotate();
-	ubo.view = camera->getLookAt();
-	ubo.proj = camera->getPerspective();
+	ubo.model = houseModel->getModelMatrix();
+	ubo.view = camera->getViewMatrix();
+	ubo.proj = camera->getPerspectiveMatrix();
 	ubo.proj[1][1] *= -1;
 
 	void* data;

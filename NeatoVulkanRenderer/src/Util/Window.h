@@ -2,6 +2,7 @@
 #include "Events/Event.h"
 #include "Events/KeyEvent.h"
 #include "Events/ApplicationEvent.h"
+#include "Events/MouseEvent.h"
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
