@@ -21,21 +21,22 @@ public:
 	glm::vec3 lookAtDirection();
 	glm::vec3 getRight();
 
+	void toString();
 private:
 
 	void keyboardEvent(KeyEvent& e);
 	void mouseEvent(Event& e);
 	void mouseButtonEvent(Event& e);
+	bool print{ false };
 
-	glm::vec3 m_Position{ glm::vec3(4.0f, 2.0f, 2.0f) };
-	glm::vec3 m_LookAt{ glm::vec3(0.0f, 0.0f, 0.0f) };
-	glm::vec3 m_Up{ glm::vec3(0.0f, 1.0f, 0.0f) };
-	glm::vec3 m_Front{ glm::vec3(0.0f, 0.0f, -1.0f) };
+	glm::vec3 m_Position{ glm::vec3(2.0f, 2.0f, 2.0f) };
+	glm::vec3 m_LookAt{ glm::vec3(0.0f, 0.0f, 1.0f) };
+	glm::vec3 m_Up{ glm::vec3(0.0f, 0.0f, 1.0f) };
 
 	GLFWwindow* m_Window;
 	SwapChain* m_SwapChain;
 	float m_DeltaTime{ 0.0f };
-	float rot{ 145.0f };
+	float rot{ 0.0f };
 	float moveSpeed{ 0.05f };
 };
 

@@ -1,10 +1,12 @@
 #include "nvrpch.h"
 #include "Camera.h"
+#include <glm/gtx/string_cast.hpp>
 
 Camera::Camera(GLFWwindow* window, SwapChain* swapChain) :
 	m_SwapChain(swapChain),
 	m_Window(window)
 {
+	toString();
 }
 
 Camera::~Camera()
@@ -15,6 +17,7 @@ void Camera::onEvent(Event& e)
 {
 	if (e.IsInCategory(EventCategory::EventCategoryKeyboard)) {
 		keyboardEvent(dynamic_cast<KeyEvent&>(e));
+		toString();
 	}
 	else if (e.IsInCategory(EventCategory::EventCategoryMouse)) {
 		mouseEvent(e);
@@ -29,7 +32,10 @@ glm::mat4 Camera::getPerspective() {
 }
 
 glm::mat4 Camera::getLookAt() {
-	return glm::lookAt(m_Position, m_LookAt + m_Front, m_Up);
+	auto mat = glm::lookAt(m_Position, m_LookAt, m_Up);
+	if (print) std::cout << glm::to_string(mat) << "\n";
+	print = false;
+	return mat;
 }
 
 glm::mat4 Camera::getRotate() {
@@ -48,19 +54,20 @@ glm::vec3 Camera::getRight()
 
 void Camera::keyboardEvent(KeyEvent & e)
 {
-	std::cout << "Keyboard Event: " << e.ToString() << "\n";
+	//std::cout << "Keyboard Event: " << e.ToString() << "\n";
+	print = true;
 	switch (e.GetKeyCode()) {
 		case GLFW_KEY_W:
-			m_Position += moveSpeed * m_Front;
+			m_Position += moveSpeed * m_LookAt;
 			break;
 		case GLFW_KEY_S:
-			m_Position -= moveSpeed * m_Front;
+			m_Position -= moveSpeed * m_LookAt;
 			break;
 		case GLFW_KEY_A:
-			m_Position -= glm::normalize(glm::cross(m_Front, m_Up)) * moveSpeed;
+			m_Position -= glm::normalize(glm::cross(m_LookAt, m_Up)) * moveSpeed;
 			break;
 		case GLFW_KEY_D:
-			m_Position += glm::normalize(glm::cross(m_Front, m_Up)) * moveSpeed;
+			m_Position += glm::normalize(glm::cross(m_LookAt, m_Up)) * moveSpeed;
 			break;
 		case GLFW_KEY_E:
 			rot += 0.5f;
@@ -71,7 +78,7 @@ void Camera::keyboardEvent(KeyEvent & e)
 		default: 
 			break;
 	}
-	std::cout << "Position: " << m_Position.x << " " << m_Position.y << " " << m_Position.z << "\n";
+	//std::cout << "Position: " << m_Position.x << " " << m_Position.y << " " << m_Position.z << "\n";
 }
 
 void Camera::mouseEvent(Event & e)
@@ -93,6 +100,13 @@ void Camera::registerKeyInput(GLFWwindow* window, int key, int scancode, int act
 	default:
 		break;
 	}
+}
+
+void Camera::toString()
+{
+	std::cout << "Position: " << m_Position.x << ", " << m_Position.y << ", " << m_Position.z << "   ";
+	std::cout << "Up: " << m_Up.x << ", " << m_Up.y << ", " << m_Up.z << " ";
+	std::cout << "Look At: " << m_LookAt.x << ", " << m_LookAt.y << ", " << m_LookAt.z << "\n";
 }
 
 void Camera::update() {
