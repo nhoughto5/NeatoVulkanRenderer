@@ -68,7 +68,7 @@ void Camera::keyboardEvent(KeyEvent & e)
 			m_Yaw += 0.5f;
 			break;
 		case GLFW_KEY_Q:
-			m_Yaw -= 0.5f;
+			m_Pitch += 0.5f;
 			break;
 		default: 
 			break;
@@ -80,11 +80,14 @@ void Camera::keyboardEvent(KeyEvent & e)
 
 void Camera::mouseEvent(MouseMovedEvent & e)
 {
-	return;
+	//sreturn;
 	//Update pitch yaw and roll
-	m_Pitch += e.GetY() * m_MouseSensitivity * m_DeltaTime;
-	m_Yaw += e.GetX() * m_MouseSensitivity * m_DeltaTime;
-
+	float newX = lastX - e.GetX();
+	float newY = e.GetY() - lastY;
+	m_Pitch += newX * m_MouseSensitivity * m_DeltaTime;
+	m_Yaw += newY * m_MouseSensitivity * m_DeltaTime;
+	lastX = e.GetX();
+	lastY = e.GetY();
 	//if (m_Pitch > 80.f)
 	//	m_Pitch = 80.f;
 	//else if (m_Pitch < -80.f)

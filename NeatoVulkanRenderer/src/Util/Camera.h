@@ -36,7 +36,9 @@ private:
 	float m_Pitch{ 180.0f };
 	float m_Yaw{ 0.0f };
 	float m_Roll{ 0.0f };
-	float m_MouseSensitivity{ .00001f };
+	float m_MouseSensitivity{ .01f };
+	float lastX{ 0.0f };
+	float lastY{ 0.0f };
 
 	GLFWwindow* m_Window;
 	SwapChain* m_SwapChain;
