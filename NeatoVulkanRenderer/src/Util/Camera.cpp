@@ -65,10 +65,10 @@ void Camera::keyboardEvent(KeyEvent & e)
 			m_Position += m_Right * moveSpeed * m_DeltaTime;
 			break;
 		case GLFW_KEY_E:
-			m_Yaw += 0.5f;
+			m_Position += m_Up * moveSpeed * m_DeltaTime;
 			break;
 		case GLFW_KEY_Q:
-			m_Pitch += 0.5f;
+			m_Position -= m_Up * moveSpeed * m_DeltaTime;
 			break;
 		default: 
 			break;
