@@ -8,31 +8,23 @@
 const std::string MODEL_PATH = "models/chalet.obj";
 const std::string TEXTURE_PATH = "textures/chalet.jpg";
 
-class Model
+class House
 {
 public:
-	Model(PhysicalDevice* physicalDevice, LogicalDevice* logicalDevice, SwapChain* swapChain, CommandBus* commandBus);
-	~Model();
+	House(PhysicalDevice* physicalDevice, LogicalDevice* logicalDevice, SwapChain* swapChain, CommandBus* commandBus);
+	~House();
 
 	glm::mat4 getModelMatrix();
-
 	void Cleanup();
-
 	void createIndexBuffer();
-
 	void createUniformBuffers();
-
 	void createVertexBuffer();
-
 	void loadModel();
-
 	void createTextureImageView();
 	void createTextureImage();
 	void createDepthResources();
 	void createColorResources();
-
 	void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
-
 	void createTextureSampler();
 	VkImageView getTextureImageView();
 	VkImageView getColorImageView();
@@ -71,4 +63,3 @@ private:
 	SwapChain* m_SwapChain;
 	CommandBus* m_CommandBus;
 };
-

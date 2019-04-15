@@ -51,7 +51,7 @@ void Renderer::initVulkan() {
 	renderPass = new RenderPass(physicalDevice, logicalDevice, swapChain);
 	graphicsPipeline = new GraphicsPipeline(physicalDevice, logicalDevice, swapChain, renderPass);
 	commandBus = new CommandBus(physicalDevice, logicalDevice, swapChain, renderPass, graphicsPipeline);
-	houseModel = new Model(physicalDevice, logicalDevice, swapChain, commandBus);
+	houseModel = new House(physicalDevice, logicalDevice, swapChain, commandBus);
 
 	houseModel->createDepthResources();
 	houseModel->createColorResources();

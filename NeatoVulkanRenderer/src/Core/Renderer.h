@@ -9,7 +9,7 @@
 #include "RenderPass.h"
 #include "GraphicsPipeline.h"
 #include "CommandBus.h"
-#include "Model.h"
+#include "House.h"
 #include "Util/Camera.h"
 #include "Util/Window.h"
 
@@ -29,7 +29,7 @@ private:
 	RenderPass* renderPass;
 	GraphicsPipeline* graphicsPipeline;
 	CommandBus* commandBus;
-	Model* houseModel;
+	House* houseModel;
 	Camera* camera;
 
 	void onEvent(Event& e);
