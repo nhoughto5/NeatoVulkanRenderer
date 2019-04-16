@@ -17,7 +17,6 @@ Model::Model(PhysicalDevice* physicalDevice, LogicalDevice* logicalDevice, SwapC
 	createTextureSampler();
 	createVertexBuffer();
 	createIndexBuffer();
-	createUniformBuffers();
 }
 
 Model::~Model()
@@ -53,11 +52,6 @@ void Model::Cleanup() {
 	vkFreeMemory(m_LogicalDevice->getLogicalDevice(), m_IndexBufferMemory, nullptr);
 	vkDestroyBuffer(m_LogicalDevice->getLogicalDevice(), m_VertexBuffer, nullptr);
 	vkFreeMemory(m_LogicalDevice->getLogicalDevice(), m_VertexBufferMemory, nullptr);
-
-	for (size_t i = 0; i < m_SwapChain->getSwapChainImages().size(); i++) {
-		vkDestroyBuffer(m_LogicalDevice->getLogicalDevice(), m_UniformBuffers[i], nullptr);
-		vkFreeMemory(m_LogicalDevice->getLogicalDevice(), m_UniformBuffersMemory[i], nullptr);
-	}
 }
 
 void Model::createIndexBuffer() {
@@ -76,16 +70,6 @@ void Model::createIndexBuffer() {
 	m_CommandBus->copyBuffer(stagingBuffer, m_IndexBuffer, bufferSize);
 	vkDestroyBuffer(m_LogicalDevice->getLogicalDevice(), stagingBuffer, nullptr);
 	vkFreeMemory(m_LogicalDevice->getLogicalDevice(), stagingBufferMemory, nullptr);
-}
-
-void Model::createUniformBuffers() {
-	VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-	m_UniformBuffers.resize(m_SwapChain->getSwapChainImages().size());
-	m_UniformBuffersMemory.resize(m_SwapChain->getSwapChainImages().size());
-
-	for (size_t i = 0; i < m_SwapChain->getSwapChainImages().size(); i++) {
-		m_LogicalDevice->createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_UniformBuffers[i], m_UniformBuffersMemory[i]);
-	}
 }
 
 void Model::createVertexBuffer() {
@@ -322,16 +306,6 @@ VkBuffer Model::getIndexBuffer() {
 
 std::vector<uint32_t> Model::getIndices() {
 	return m_Indices;
-}
-
-std::vector<VkBuffer> Model::getUniformBuffers()
-{
-	return m_UniformBuffers;
-}
-
-std::vector<VkDeviceMemory> Model::getUniformBuffersMemory()
-{
-	return m_UniformBuffersMemory;
 }
 
 int Model::getNumIndicies()

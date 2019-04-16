@@ -169,6 +169,8 @@ GraphicsPipeline::GraphicsPipeline(PhysicalDevice* physicalDevice, LogicalDevice
 	// Cleanup
 	vkDestroyShaderModule(logicalDevice->getLogicalDevice(), fragShaderModule, nullptr);
 	vkDestroyShaderModule(logicalDevice->getLogicalDevice(), vertShaderModule, nullptr);
+
+	createDescriptorPool();
 }
 
 GraphicsPipeline::~GraphicsPipeline()
@@ -199,6 +201,11 @@ VkPipelineLayout GraphicsPipeline::getGraphicsPipelineLayout()
 VkDescriptorSetLayout GraphicsPipeline::getDescriptorSetLayout()
 {
 	return m_DescriptorSetLayout;
+}
+
+VkDescriptorPool GraphicsPipeline::getDescriptorPool()
+{
+	return m_DescriptorPool;
 }
 
 VkShaderModule GraphicsPipeline::createShaderModule(const std::vector<char>& code) {
@@ -239,7 +246,7 @@ void GraphicsPipeline::createDescriptorSetLayout() {
 	}
 }
 
-VkDescriptorPool GraphicsPipeline::createDescriptorPool() {
+void GraphicsPipeline::createDescriptorPool() {
 	std::array<VkDescriptorPoolSize, 2> poolSizes = {};
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	poolSizes[0].descriptorCount = static_cast<uint32_t>(m_SwapChain->getSwapChainImages().size());
@@ -252,10 +259,8 @@ VkDescriptorPool GraphicsPipeline::createDescriptorPool() {
 	poolInfo.pPoolSizes = poolSizes.data();
 	poolInfo.maxSets = static_cast<uint32_t>(m_SwapChain->getSwapChainImages().size());
 
-	VkDescriptorPool descriptorPool;
-	if (vkCreateDescriptorPool(m_LogicalDevice->getLogicalDevice(), &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+	if (vkCreateDescriptorPool(m_LogicalDevice->getLogicalDevice(), &poolInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create descriptor pool");
 	}
-	m_AllocatedDescriptorPools.push_back(descriptorPool);
-	return descriptorPool;
+	m_AllocatedDescriptorPools.push_back(m_DescriptorPool);
 }

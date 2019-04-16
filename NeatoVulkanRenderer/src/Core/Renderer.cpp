@@ -52,10 +52,11 @@ void Renderer::initVulkan() {
 	graphicsPipeline = new GraphicsPipeline(physicalDevice, logicalDevice, swapChain, renderPass);
 	commandBus = new CommandBus(physicalDevice, logicalDevice, swapChain, renderPass, graphicsPipeline);
 	houseModel = new Model(physicalDevice, logicalDevice, swapChain, commandBus);
-
-	swapChain->createFrameBuffers(renderPass->getRenderPass(), houseModel->getColorImageView(), houseModel->getDepthImageView());
-	descriptorPool = graphicsPipeline->createDescriptorPool();
+	
+	createUniformBuffers();
 	createDescriptorSets();
+	
+	swapChain->createFrameBuffers(renderPass->getRenderPass(), houseModel->getColorImageView(), houseModel->getDepthImageView());
 	commandBus->createCommandBuffers(
 		houseModel->getVertexBuffer(),
 		houseModel->getIndexBuffer(),
@@ -70,7 +71,7 @@ void Renderer::createDescriptorSets() {
 
 	VkDescriptorSetAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = descriptorPool;
+	allocInfo.descriptorPool = graphicsPipeline->getDescriptorPool();
 	allocInfo.descriptorSetCount = static_cast<uint32_t>(swapChain->getSwapChainImages().size());
 	allocInfo.pSetLayouts = layouts.data();
 
@@ -79,7 +80,7 @@ void Renderer::createDescriptorSets() {
 		throw std::runtime_error("Failed to allocate descriptor sets");
 	}
 
-	auto uniformBuffers = houseModel->getUniformBuffers();
+	//auto uniformBuffers = houseModel->getUniformBuffers();
 
 	for (size_t i = 0; i < swapChain->getSwapChainImages().size(); i++) {
 		VkDescriptorBufferInfo bufferInfo = {};
@@ -226,6 +227,11 @@ void Renderer::cleanup() {
 
 	houseModel->Cleanup();
 
+	for (size_t i = 0; i < swapChain->getSwapChainImages().size(); i++) {
+		vkDestroyBuffer(logicalDevice->getLogicalDevice(), uniformBuffers[i], nullptr);
+		vkFreeMemory(logicalDevice->getLogicalDevice(), uniformBuffersMemory[i], nullptr);
+	}
+
 	vkDestroySemaphore(logicalDevice->getLogicalDevice(), renderFinishedSemaphore, nullptr);
 	vkDestroySemaphore(logicalDevice->getLogicalDevice(), imageAvailableSemaphore, nullptr);
 
@@ -242,6 +248,16 @@ void Renderer::cleanup() {
 	glfwTerminate();
 }
 
+void Renderer::createUniformBuffers() {
+	VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+	uniformBuffers.resize(swapChain->getSwapChainImages().size());
+	uniformBuffersMemory.resize(swapChain->getSwapChainImages().size());
+
+	for (size_t i = 0; i < swapChain->getSwapChainImages().size(); i++) {
+		logicalDevice->createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
+	}
+}
+
 void Renderer::update(uint32_t currentImage) {
 	UniformBufferObject ubo = {};
 	camera->update();
@@ -251,7 +267,6 @@ void Renderer::update(uint32_t currentImage) {
 	ubo.proj[1][1] *= -1;
 
 	void* data;
-	auto uniformBuffersMemory = houseModel->getUniformBuffersMemory();
 	vkMapMemory(logicalDevice->getLogicalDevice(), uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &data);
 	memcpy(data, &ubo, sizeof(ubo));
 	vkUnmapMemory(logicalDevice->getLogicalDevice(), uniformBuffersMemory[currentImage]);

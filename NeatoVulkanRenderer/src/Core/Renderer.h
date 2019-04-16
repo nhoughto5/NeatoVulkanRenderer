@@ -31,16 +31,18 @@ private:
 	CommandBus* commandBus;
 	Model* houseModel;
 	Camera* camera;
+	std::vector<VkBuffer> uniformBuffers;
+	std::vector<VkDeviceMemory> uniformBuffersMemory;
 
 	void onEvent(Event& e);
 	VkSemaphore imageAvailableSemaphore, renderFinishedSemaphore;
-	VkDescriptorPool descriptorPool;
 	std::vector<VkDescriptorSet> descriptorSets;
 
 	static void onWindowResize(GLFWwindow* window, int width, int height);
 	void initVulkan();
 	void createDescriptorSets();
 
+	void createUniformBuffers();
 	void recreateSwapChain();
 	void createSemaphores();
 	void drawFrame();

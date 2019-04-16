@@ -14,7 +14,7 @@ public:
 	VkPipeline getGraphicsPipeline();
 	VkPipelineLayout getGraphicsPipelineLayout();
 	VkDescriptorSetLayout getDescriptorSetLayout();
-	VkDescriptorPool GraphicsPipeline::createDescriptorPool();
+	VkDescriptorPool getDescriptorPool();
 
 private:
 	PhysicalDevice* m_PhysicalDevice;
@@ -26,6 +26,8 @@ private:
 	VkPipelineLayout m_PipelineLayout;
 	std::vector<VkDescriptorPool> m_AllocatedDescriptorPools;
 
+	void GraphicsPipeline::createDescriptorPool();
+	VkDescriptorPool m_DescriptorPool;
 	VkShaderModule createShaderModule(const std::vector<char>& code);
 	void createDescriptorSetLayout();
 };

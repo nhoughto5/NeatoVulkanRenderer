@@ -26,8 +26,6 @@ public:
 	VkBuffer getVertexBuffer();
 	VkBuffer getIndexBuffer();
 	std::vector<uint32_t> getIndices();
-	std::vector<VkBuffer> getUniformBuffers();
-	std::vector<VkDeviceMemory> getUniformBuffersMemory();
 	int getNumIndicies();
 
 private:
@@ -38,7 +36,6 @@ private:
 	void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
 	void createTextureSampler();
 	void createIndexBuffer();
-	void createUniformBuffers();
 	void createVertexBuffer();
 	
 	VkImageView m_ColorImageView;
@@ -56,8 +53,6 @@ private:
 	VkDeviceMemory m_VertexBufferMemory;
 	VkBuffer m_IndexBuffer;
 	VkDeviceMemory m_IndexBufferMemory;
-	std::vector<VkBuffer> m_UniformBuffers;
-	std::vector<VkDeviceMemory> m_UniformBuffersMemory;
 	std::vector<Vertex> m_Vertices;
 	std::vector<uint32_t> m_Indices;
 
