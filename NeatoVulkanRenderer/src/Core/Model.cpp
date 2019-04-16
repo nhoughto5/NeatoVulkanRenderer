@@ -1,25 +1,39 @@
 #include "nvrpch.h"
-#include "House.h"
+#include "Model.h"
 #include <tiny_obj_loader.h>
 #include <stb_image.h>
 
-House::House(PhysicalDevice* physicalDevice, LogicalDevice* logicalDevice, SwapChain* swapChain, CommandBus* commandBus) :
+Model::Model(PhysicalDevice* physicalDevice, LogicalDevice* logicalDevice, SwapChain* swapChain, CommandBus* commandBus) :
 	m_PhysicalDevice(physicalDevice),
 	m_LogicalDevice(logicalDevice),
 	m_SwapChain(swapChain),
 	m_CommandBus(commandBus)
 {
+	loadModel();
+	createDepthResources();
+	createColorResources();
+	createTextureImage();
+	createTextureImageView();
+	createTextureSampler();
+	createVertexBuffer();
+	createIndexBuffer();
+	createUniformBuffers();
 }
 
-House::~House()
+Model::~Model()
 {
 }
 
-glm::mat4 House::getModelMatrix() {
+void Model::Recreate() {
+	createColorResources();
+	createDepthResources();
+}
+
+glm::mat4 Model::getModelMatrix() {
 	return glm::mat4(1.0f);
 }
 
-void House::Cleanup() {
+void Model::Cleanup() {
 	vkDestroySampler(m_LogicalDevice->getLogicalDevice(), m_TextureSampler, nullptr);
 	vkDestroyImageView(m_LogicalDevice->getLogicalDevice(), m_TextureImageView, nullptr);
 
@@ -34,7 +48,7 @@ void House::Cleanup() {
 	vkDestroyImageView(m_LogicalDevice->getLogicalDevice(), m_DepthImageView, nullptr);
 	vkDestroyImage(m_LogicalDevice->getLogicalDevice(), m_DepthImage, nullptr);
 	vkFreeMemory(m_LogicalDevice->getLogicalDevice(), m_DepthImageMemory, nullptr);
-	
+
 	vkDestroyBuffer(m_LogicalDevice->getLogicalDevice(), m_IndexBuffer, nullptr);
 	vkFreeMemory(m_LogicalDevice->getLogicalDevice(), m_IndexBufferMemory, nullptr);
 	vkDestroyBuffer(m_LogicalDevice->getLogicalDevice(), m_VertexBuffer, nullptr);
@@ -46,7 +60,7 @@ void House::Cleanup() {
 	}
 }
 
-void House::createIndexBuffer() {
+void Model::createIndexBuffer() {
 	VkDeviceSize bufferSize = sizeof(m_Indices[0]) * m_Indices.size();
 	VkBuffer stagingBuffer;
 	VkDeviceMemory stagingBufferMemory;
@@ -64,7 +78,7 @@ void House::createIndexBuffer() {
 	vkFreeMemory(m_LogicalDevice->getLogicalDevice(), stagingBufferMemory, nullptr);
 }
 
-void House::createUniformBuffers() {
+void Model::createUniformBuffers() {
 	VkDeviceSize bufferSize = sizeof(UniformBufferObject);
 	m_UniformBuffers.resize(m_SwapChain->getSwapChainImages().size());
 	m_UniformBuffersMemory.resize(m_SwapChain->getSwapChainImages().size());
@@ -74,7 +88,7 @@ void House::createUniformBuffers() {
 	}
 }
 
-void House::createVertexBuffer() {
+void Model::createVertexBuffer() {
 	VkDeviceSize bufferSize = sizeof(m_Vertices[0]) * m_Vertices.size();
 
 	VkBuffer stagingBuffer;
@@ -94,7 +108,7 @@ void House::createVertexBuffer() {
 	vkFreeMemory(m_LogicalDevice->getLogicalDevice(), stagingBufferMemory, nullptr);
 }
 
-void House::loadModel() {
+void Model::loadModel() {
 	tinyobj::attrib_t attrib;
 	std::vector<tinyobj::shape_t> shapes;
 	std::vector<tinyobj::material_t> materials;
@@ -135,11 +149,11 @@ void House::loadModel() {
 	}
 }
 
-void House::createTextureImageView() {
+void Model::createTextureImageView() {
 	m_TextureImageView = createImageView(m_TextureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels, m_LogicalDevice->getLogicalDevice());
 }
 
-void House::createTextureImage() {
+void Model::createTextureImage() {
 	int texWidth, texHeight, texChannels;
 	stbi_uc* pixels = stbi_load(TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 	VkDeviceSize imageSize = texWidth * texHeight * 4;
@@ -171,7 +185,7 @@ void House::createTextureImage() {
 	generateMipmaps(m_TextureImage, VK_FORMAT_R8G8B8A8_UNORM, texWidth, texHeight, mipLevels);
 }
 
-void House::createDepthResources() {
+void Model::createDepthResources() {
 	VkFormat depthFormat = findDepthFormat(m_PhysicalDevice->getPhysicalDevice());
 	createImage(m_PhysicalDevice->getPhysicalDevice(), m_LogicalDevice->getLogicalDevice(), m_SwapChain->getSwapChainExtent().width, m_SwapChain->getSwapChainExtent().height, 1, m_PhysicalDevice->getMaxUsableSampleCount(), depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_DepthImage, m_DepthImageMemory);
 	m_DepthImageView = createImageView(m_DepthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1, m_LogicalDevice->getLogicalDevice());
@@ -179,7 +193,7 @@ void House::createDepthResources() {
 	m_CommandBus->transitionImageLayout(m_DepthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
 }
 
-void House::createColorResources() {
+void Model::createColorResources() {
 	VkFormat colorFormat = m_SwapChain->getSwapChainImageFormat();
 	createImage(m_PhysicalDevice->getPhysicalDevice(), m_LogicalDevice->getLogicalDevice(), m_SwapChain->getSwapChainExtent().width, m_SwapChain->getSwapChainExtent().height, 1, m_PhysicalDevice->getMaxUsableSampleCount(), colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_ColorImage, m_ColorImageMemory);
 	m_ColorImageView = createImageView(m_ColorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, m_LogicalDevice->getLogicalDevice());
@@ -187,7 +201,7 @@ void House::createColorResources() {
 	m_CommandBus->transitionImageLayout(m_ColorImage, colorFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1);
 }
 
-void House::generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) {
+void Model::generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) {
 
 	VkFormatProperties formatProperties;
 	vkGetPhysicalDeviceFormatProperties(m_PhysicalDevice->getPhysicalDevice(), imageFormat, &formatProperties);
@@ -274,7 +288,7 @@ void House::generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidt
 	m_CommandBus->endSingleTimeCommands(commandBuffer);
 }
 
-void House::createTextureSampler() {
+void Model::createTextureSampler() {
 	VkSamplerCreateInfo samplerInfo = {};
 	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 	samplerInfo.magFilter = VK_FILTER_LINEAR;
@@ -298,49 +312,49 @@ void House::createTextureSampler() {
 	}
 }
 
-VkBuffer House::getVertexBuffer() {
+VkBuffer Model::getVertexBuffer() {
 	return m_VertexBuffer;
 }
 
-VkBuffer House::getIndexBuffer() {
+VkBuffer Model::getIndexBuffer() {
 	return m_IndexBuffer;
 }
 
-std::vector<uint32_t> House::getIndices() {
+std::vector<uint32_t> Model::getIndices() {
 	return m_Indices;
 }
 
-std::vector<VkBuffer> House::getUniformBuffers()
+std::vector<VkBuffer> Model::getUniformBuffers()
 {
 	return m_UniformBuffers;
 }
 
-std::vector<VkDeviceMemory> House::getUniformBuffersMemory()
+std::vector<VkDeviceMemory> Model::getUniformBuffersMemory()
 {
 	return m_UniformBuffersMemory;
 }
 
-int House::getNumIndicies()
+int Model::getNumIndicies()
 {
 	return m_Indices.size();
 }
 
-VkImageView House::getTextureImageView()
+VkImageView Model::getTextureImageView()
 {
 	return m_TextureImageView;
 }
 
-VkImageView House::getColorImageView()
+VkImageView Model::getColorImageView()
 {
 	return m_ColorImageView;
 }
 
-VkImageView House::getDepthImageView()
+VkImageView Model::getDepthImageView()
 {
 	return m_DepthImageView;
 }
 
-VkSampler House::getTextureSampler()
+VkSampler Model::getTextureSampler()
 {
 	return m_TextureSampler;
 }

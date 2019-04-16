@@ -70,6 +70,9 @@ void Camera::keyboardEvent(KeyEvent & e)
 		case GLFW_KEY_Q:
 			m_Position -= m_Up * moveSpeed * m_DeltaTime;
 			break;
+		case GLFW_KEY_ESCAPE:
+			glfwSetInputMode(m_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			break;
 		default: 
 			break;
 	}

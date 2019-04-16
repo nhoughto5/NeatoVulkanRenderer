@@ -8,24 +8,17 @@
 const std::string MODEL_PATH = "models/chalet.obj";
 const std::string TEXTURE_PATH = "textures/chalet.jpg";
 
-class House
+class Model
 {
 public:
-	House(PhysicalDevice* physicalDevice, LogicalDevice* logicalDevice, SwapChain* swapChain, CommandBus* commandBus);
-	~House();
+	Model(PhysicalDevice* physicalDevice, LogicalDevice* logicalDevice, SwapChain* swapChain, CommandBus* commandBus);
+	~Model();
+
+	void Recreate();
+	void Cleanup();
+	void loadModel();
 
 	glm::mat4 getModelMatrix();
-	void Cleanup();
-	void createIndexBuffer();
-	void createUniformBuffers();
-	void createVertexBuffer();
-	void loadModel();
-	void createTextureImageView();
-	void createTextureImage();
-	void createDepthResources();
-	void createColorResources();
-	void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
-	void createTextureSampler();
 	VkImageView getTextureImageView();
 	VkImageView getColorImageView();
 	VkImageView getDepthImageView();
@@ -38,6 +31,16 @@ public:
 	int getNumIndicies();
 
 private:
+	void createTextureImageView();
+	void createTextureImage();
+	void createDepthResources();
+	void createColorResources();
+	void generateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
+	void createTextureSampler();
+	void createIndexBuffer();
+	void createUniformBuffers();
+	void createVertexBuffer();
+	
 	VkImageView m_ColorImageView;
 	VkImage m_ColorImage;
 	VkDeviceMemory m_ColorImageMemory;

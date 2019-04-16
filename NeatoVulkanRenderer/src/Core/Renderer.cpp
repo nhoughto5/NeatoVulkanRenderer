@@ -51,19 +51,9 @@ void Renderer::initVulkan() {
 	renderPass = new RenderPass(physicalDevice, logicalDevice, swapChain);
 	graphicsPipeline = new GraphicsPipeline(physicalDevice, logicalDevice, swapChain, renderPass);
 	commandBus = new CommandBus(physicalDevice, logicalDevice, swapChain, renderPass, graphicsPipeline);
-	houseModel = new House(physicalDevice, logicalDevice, swapChain, commandBus);
-
-	houseModel->createDepthResources();
-	houseModel->createColorResources();
+	houseModel = new Model(physicalDevice, logicalDevice, swapChain, commandBus);
 
 	swapChain->createFrameBuffers(renderPass->getRenderPass(), houseModel->getColorImageView(), houseModel->getDepthImageView());
-	houseModel->createTextureImage();
-	houseModel->createTextureImageView();
-	houseModel->createTextureSampler();
-	houseModel->loadModel();
-	houseModel->createVertexBuffer();
-	houseModel->createIndexBuffer();
-	houseModel->createUniformBuffers();
 	descriptorPool = graphicsPipeline->createDescriptorPool();
 	createDescriptorSets();
 	commandBus->createCommandBuffers(
@@ -210,8 +200,7 @@ void Renderer::recreateSwapChain() {
 	renderPass = new RenderPass(physicalDevice, logicalDevice, swapChain);
 	graphicsPipeline = new GraphicsPipeline(physicalDevice, logicalDevice, swapChain, renderPass);
 
-	houseModel->createColorResources();
-	houseModel->createDepthResources();
+	houseModel->Recreate();
 	swapChain->createFrameBuffers(renderPass->getRenderPass(), houseModel->getColorImageView(), houseModel->getDepthImageView());
 	commandBus->createCommandBuffers(
 		houseModel->getVertexBuffer(),
